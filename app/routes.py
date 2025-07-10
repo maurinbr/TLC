@@ -56,4 +56,4 @@ def database():
 
 @app.route('/parametre')
 def parametre():
-    return render_template('parametre.html', active_page='parametre')
+    return render_template('parametres.html', active_page='parametres')

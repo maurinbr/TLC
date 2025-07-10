@@ -31,8 +31,8 @@
     <nav class="navbar">
         <a href="/" class="{% if active_page == 'index' %}active{% endif %}">Live Lab</a>
         <a href="/explorateur" class="{% if active_page == 'explorateur' %}active{% endif %}">Explorateur</a>
-        <a href="/database" class="{% if active_page == 'database' %}active{% endif %}">Database</a>
-        <a href="/parametre" class="{% if active_page == 'parametre' %}active{% endif %}">Paramètre</a>
+        <a href="/database" class="{% if active_page == 'database' %}active{% endif %}">Databases</a>
+        <a href="/parametre" class="{% if active_page == 'parametre' %}active{% endif %}">Paramètres</a>
     </nav>
     <div style="padding: 20px;">
         {% block content %}{% endblock %}
