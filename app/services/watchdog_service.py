@@ -17,8 +17,16 @@ class MonHandler(FileSystemEventHandler):
             dest_dir = os.path.abspath(dest_dir)
             os.makedirs(dest_dir, exist_ok=True)
             dest_path = os.path.join(dest_dir, os.path.basename(event.src_path))
-            shutil.copy2(event.src_path, dest_path)
-            images_detected.append(os.path.basename(event.src_path))
+            # Retry copy if file is locked
+            for i in range(10):
+                try:
+                    shutil.copy2(event.src_path, dest_path)
+                    images_detected.append(os.path.basename(event.src_path))
+                    break
+                except PermissionError:
+                    time.sleep(0.5)
+            else:
+                print(f"Impossible de copier {event.src_path} après plusieurs tentatives.")
 
     def on_deleted(self, event):
         if not event.is_directory:

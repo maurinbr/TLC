@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Images détectées</title>
-    <meta http-equiv="refresh" content="5"> <!-- Rafraîchit la page toutes les 5 secondes -->
+    <meta http-equiv="refresh" content="10"> <!-- Rafraîchit la page toutes les 5 secondes -->
     <style>
         .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .btn-tlc {
@@ -17,36 +17,67 @@
             transition: background 0.2s;
         }
         .btn-tlc:hover { background: #125ea2; }
+        .btn-tlc.active, .btn-tlc:active {
+            background: #4caf50 !important;
+            color: #fff;
+            box-shadow: 0 0 0 2px #388e3c;
+        }
     </style>
 </head>
 <body>
     <h1>Images détectées</h1>
-    <div class="btn-row">
-        <button class="btn-tlc">Opiacé</button>
-        <button class="btn-tlc">Général</button>
-        <button class="btn-tlc">Cocaïne</button>
-        <button class="btn-tlc">THC</button>
+    <div class="btn-row" id="éluant">
+        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Opiacé</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Général</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Cocaïne</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">THC</button>
     </div>
-    <div class="btn-row">
-        <button class="btn-tlc">UV254</button>
-        <button class="btn-tlc">UV365</button>
-        <button class="btn-tlc">Marquis-Mandein</button>
-        <button class="btn-tlc">Dragendorf</button>
-        <button class="btn-tlc">Mecke</button>
-        <button class="btn-tlc">Liebermann</button>
+    <div class="btn-row" id="révélateur">
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV254</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV365</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Marquis-Mandein</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Dragendorf</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mecke</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Liebermann</button>
     </div>
-    <div class="btn-row">
-        <button class="btn-tlc">Sauvegarder</button>
+    <div class="btn-row" id="action">
+        <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
+        <button class="btn-tlc">Passer</button>
     </div>
-    <ul style="list-style:none; padding:0;">
-        {% for img in images %}
-        <li style="margin-bottom:20px;">
-            <img src="{{ url_for('static', filename='images/' + img) }}" alt="Image" style="max-width:300px; border:1px solid #ccc; box-shadow:2px 2px 8px #aaa;">
-            <br>{{ img }}
-        </li>
-        {% else %}
-        <li>Aucune image détectée.</li>
-        {% endfor %}
-    </ul>
+    <script>
+        function selectBtn(btn, rowId) {
+            const row = document.getElementById(rowId);
+            Array.from(row.getElementsByClassName('btn-tlc')).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            // Sauvegarde le choix dans le localStorage
+            localStorage.setItem('activeBtn_' + rowId, Array.from(row.children).indexOf(btn));
+        }
+        function saveData() {
+            const eluant = document.querySelector('#éluant .btn-tlc.active');
+            const colorant = document.querySelector('#révélateur .btn-tlc.active');
+            const file = {{ last_img|tojson|safe }};
+            if (!file || !eluant || !colorant) {
+                alert('Veuillez sélectionner un éluant, un révélateur et avoir une image.');
+                return;
+            }
+            const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent] };
+            alert('Données à sauvegarder :\n' + JSON.stringify(dataToSave, null, 2));
+            fetch('/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSave)
+            })
+            .then(r => r.ok ? alert('Sauvegardé !') : alert('Erreur sauvegarde'));
+        }
+    </script>
+    <h2>Dernière image ajoutée</h2>
+    {% if last_img %}
+        <div style="margin-bottom:30px;">
+            <img src="{{ url_for('static', filename='images/' + last_img) }}" alt="Dernière image" style="max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa;">
+            <br><b>{{ last_img }}</b>
+        </div>
+    {% else %}
+        <p>Aucune image détectée.</p>
+    {% endif %}
 </body>
 </html>
