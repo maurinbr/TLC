@@ -19,9 +19,26 @@
         color: #fff;
         box-shadow: 0 0 0 2px #388e3c;
     }
+    .notif {
+        background: #323232;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 6px;
+        position: fixed;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        font-size: 1.1em;
+        opacity: 0.95;
+        display: none;
+        min-width: 200px;
+        text-align: center;
+    }
 </style>
 {% endblock %}
 {% block content %}
+    <div id="notif" class="notif"></div>
     <h1>Nouvelle analyse</h1>
     <div class="btn-row" id="éluant">
         <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Opiacé</button>
@@ -36,6 +53,9 @@
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Dragendorf</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mecke</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Liebermann</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Marquis</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mandelin</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Erhlich</button>
     </div>
     <div class="btn-row" id="action">
         <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
@@ -50,6 +70,13 @@
         <p>Aucune image détectée.</p>
     {% endif %}
     <script>
+        function showNotif(msg, color) {
+            const notif = document.getElementById('notif');
+            notif.textContent = msg;
+            notif.style.background = color || '#323232';
+            notif.style.display = 'block';
+            setTimeout(() => { notif.style.display = 'none'; }, 2500);
+        }
         function selectBtn(btn, rowId) {
             const row = document.getElementById(rowId);
             Array.from(row.getElementsByClassName('btn-tlc')).forEach(b => b.classList.remove('active'));
@@ -74,17 +101,17 @@
             const colorant = document.querySelector('#révélateur .btn-tlc.active');
             const file = {{ last_img|tojson|safe }};
             if (!file || !eluant || !colorant) {
-                alert('Veuillez sélectionner un éluant, un révélateur et avoir une image.');
+                showNotif('Veuillez sélectionner un éluant, un révélateur et avoir une image.', '#e53935');
                 return;
             }
             const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent] };
-            alert('Données à sauvegarder :\n' + JSON.stringify(dataToSave, null, 2));
+            showNotif('Données à sauvegarder : ' + JSON.stringify(dataToSave), '#1976d2');
             fetch('/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataToSave)
             })
-            .then(r => r.ok ? alert('Sauvegardé !') : alert('Erreur sauvegarde'));
+            .then(r => r.ok ? showNotif('Sauvegardé !', '#4caf50') : showNotif('Erreur sauvegarde', '#e53935'));
         }
     </script>
 {% endblock %}
