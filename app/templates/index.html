@@ -1,41 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Accueil - TLC App{% endblock %}
 {% block head %}
-<style>
-    .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    .btn-tlc {
-        padding: 10px 18px;
-        background: #1976d2;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        font-size: 1em;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-    .btn-tlc:hover { background: #125ea2; }
-    .btn-tlc.active, .btn-tlc:active {
-        background: #4caf50 !important;
-        color: #fff;
-        box-shadow: 0 0 0 2px #388e3c;
-    }
-    .notif {
-        background: #323232;
-        color: #fff;
-        padding: 12px 24px;
-        border-radius: 6px;
-        position: fixed;
-        left: 50%;
-        bottom: 40px;
-        transform: translateX(-50%);
-        z-index: 9999;
-        font-size: 1.1em;
-        opacity: 0.95;
-        display: none;
-        min-width: 200px;
-        text-align: center;
-    }
-</style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
 {% block content %}
     <div id="notif" class="notif"></div>
@@ -57,6 +23,14 @@
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mandelin</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Erhlich</button>
     </div>
+    <div class="input-row">
+        <label for="echantillons">Échantillons (Liste séparés par des virgules) :</label>
+        <input type="text" id="echantillons" placeholder="FEST25001, FEST25002, MDMA">
+    </div>
+    <div class="input-area">
+        <label for="resultats">Résultats (Lignes de la liste séparés par des virgules) :</label>
+        <textarea rows="8" id="resultats" placeholder="MDMA&#10;MDMA&#10;MDMA,Caféine"></textarea>
+    </div>
     <div class="btn-row" id="action">
         <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
         <button class="btn-tlc">Passer</button>
@@ -69,49 +43,5 @@
     {% else %}
         <p>Aucune image détectée.</p>
     {% endif %}
-    <script>
-        function showNotif(msg, color) {
-            const notif = document.getElementById('notif');
-            notif.textContent = msg;
-            notif.style.background = color || '#323232';
-            notif.style.display = 'block';
-            setTimeout(() => { notif.style.display = 'none'; }, 2500);
-        }
-        function selectBtn(btn, rowId) {
-            const row = document.getElementById(rowId);
-            Array.from(row.getElementsByClassName('btn-tlc')).forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            // Sauvegarde le choix dans le localStorage
-            localStorage.setItem('activeBtn_' + rowId, Array.from(row.children).indexOf(btn));
-        }
-        function restoreActiveBtns() {
-            ['éluant', 'révélateur'].forEach(function(rowId) {
-                const idx = localStorage.getItem('activeBtn_' + rowId);
-                if (idx !== null) {
-                    const row = document.getElementById(rowId);
-                    if (row && row.children[idx]) {
-                        row.children[idx].classList.add('active');
-                    }
-                }
-            });
-        }
-        setTimeout(restoreActiveBtns, 100);
-        function saveData() {
-            const eluant = document.querySelector('#éluant .btn-tlc.active');
-            const colorant = document.querySelector('#révélateur .btn-tlc.active');
-            const file = {{ last_img|tojson|safe }};
-            if (!file || !eluant || !colorant) {
-                showNotif('Veuillez sélectionner un éluant, un révélateur et avoir une image.', '#e53935');
-                return;
-            }
-            const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent] };
-            showNotif('Données à sauvegarder : ' + JSON.stringify(dataToSave), '#1976d2');
-            fetch('/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSave)
-            })
-            .then(r => r.ok ? showNotif('Sauvegardé !', '#4caf50') : showNotif('Erreur sauvegarde', '#e53935'));
-        }
-    </script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 {% endblock %}
