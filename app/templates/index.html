@@ -43,5 +43,10 @@
     {% else %}
         <p>Aucune image détectée.</p>
     {% endif %}
+    {% if last_img %}
+        <script>
+            window.last_img = {{ last_img|tojson|safe }};
+        </script>
+    {% endif %}
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 {% endblock %}

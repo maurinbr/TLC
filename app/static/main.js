@@ -30,18 +30,31 @@ function saveData() {
     const colorant = document.querySelector('#révélateur .btn-tlc.active');
     const file = window.last_img;
     const echInput = document.getElementById('echantillons');
+    const resInput = document.getElementById('resultats');
     let echantillons = [];
-    if (echInput && echInput.value.trim()) {
-        echantillons = echInput.value.split(',').map((s, i) => {
-            const val = s.trim();
-            return val ? { [i+1]: val } : null;
-        }).filter(Boolean);
+    let resultats = [];
+    if (resInput && resInput.value.trim()) {
+        // Découpe chaque ligne, puis chaque ligne par les virgules
+        resultats = resInput.value.split(/\r?\n/).map(ligne =>
+            ligne.split(',').map(r => r.trim()).filter(Boolean)
+        );
     }
-    if (!file || !eluant || !colorant || echantillons.length === 0 || echantillons.some(e => Object.keys(e).length === 0)) {
-        showNotif('Référence absente (image, éluant, révélateur, échantillons, résultats)', '#e53935');
+    if (echInput && echInput.value.trim()) {
+        const echList = echInput.value.split(',').map(s => s.trim()).filter(Boolean);
+        echantillons = echList.map((val, i) => {
+            console.log([i+1], val, resultats[i])
+            return {
+                [i+1]: val,
+                resultats: resultats[i] || []
+            };
+        });
+    }
+    console.log(file, eluant, colorant, echantillons);
+    if (!file || !eluant || !colorant) {
+        showNotif('Référence absente (image, éluant, révélateur).', '#e53935');
         return;
     }
-    const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent], echantillon: echantillons };
+    const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent], échantillon: echantillons };
     showNotif('Données à sauvegarder : ' + JSON.stringify(dataToSave), '#1976d2');
     fetch('/save', {
         method: 'POST',

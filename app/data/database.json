@@ -79,5 +79,27 @@
         "4": "t"
       }
     ]
+  },
+  {
+    "file": "Analyse - 2025-01-14 11_46_51 - Copie.jpeg",
+    "exp": [
+      "Opiacé",
+      "UV254"
+    ],
+    "échantillon": [
+      {
+        "1": "AA",
+        "resultats": [
+          "A"
+        ]
+      },
+      {
+        "2": "AB",
+        "resultats": [
+          "B",
+          "C"
+        ]
+      }
+    ]
   }
 ]
