@@ -2,15 +2,36 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 import threading
 import time
+import os
+import shutil
+
+# Liste partagée des images détectées (noms de fichiers)
+images_detected = []
 
 class MonHandler(FileSystemEventHandler):
     def on_created(self, event):
-        if not event.is_directory:
+        if not event.is_directory and event.src_path.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
             print(f"Fichier créé : {event.src_path}")
+            # Copie l'image dans static/images
+            dest_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'images')
+            dest_dir = os.path.abspath(dest_dir)
+            os.makedirs(dest_dir, exist_ok=True)
+            dest_path = os.path.join(dest_dir, os.path.basename(event.src_path))
+            shutil.copy2(event.src_path, dest_path)
+            images_detected.append(os.path.basename(event.src_path))
 
     def on_deleted(self, event):
         if not event.is_directory:
-            print(f"Fichier supprimé : {event.src_path}")
+            filename = os.path.basename(event.src_path)
+            if filename in images_detected:
+                print(f"Fichier supprimé : {event.src_path}")
+                images_detected.remove(filename)
+                # Supprime aussi du dossier static/images
+                dest_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'images')
+                dest_dir = os.path.abspath(dest_dir)
+                dest_path = os.path.join(dest_dir, filename)
+                if os.path.exists(dest_path):
+                    os.remove(dest_path)
 
 def start_watchdog(path):
     observer = Observer()

@@ -1,6 +1,6 @@
 from flask import render_template
 from app import app
-from app.services.watchdog_service import start_watchdog
+from app.services.watchdog_service import start_watchdog, images_detected
 import os
 
 # Démarre le watchdog au lancement de l'app Flask
@@ -10,4 +10,4 @@ start_watchdog(WATCH_PATH)
 @app.route('/')
 @app.route('/index')
 def index():
-    return "Hello, World!"
+    return render_template('index.html', images=images_detected)
