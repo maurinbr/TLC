@@ -101,5 +101,57 @@
         ]
       }
     ]
+  },
+  {
+    "file": "Analyse - 2025-01-14 11_46_51 - Copie.jpeg",
+    "exp": [
+      "Opiacé",
+      "UV254"
+    ],
+    "échantillon": [
+      {
+        "1": "FEST25001",
+        "resultats": [
+          "A"
+        ]
+      },
+      {
+        "2": "FEST25001",
+        "resultats": [
+          "B",
+          "C"
+        ]
+      },
+      {
+        "3": "FEST25001",
+        "resultats": []
+      }
+    ]
+  },
+  {
+    "file": "Analyse - 2025-01-14 11_46_51 - Copie.jpeg",
+    "exp": [
+      "Opiacé",
+      "UV254"
+    ],
+    "échantillon": [
+      {
+        "1": "FEST25001",
+        "resultats": [
+          "A"
+        ]
+      },
+      {
+        "2": "FEST25001",
+        "resultats": [
+          "B",
+          "C"
+        ]
+      },
+      {
+        "3": "FEST25011",
+        "resultats": []
+      }
+    ]
   }
 ]

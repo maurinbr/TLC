@@ -2,6 +2,7 @@
 {% block title %}Accueil - TLC App{% endblock %}
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
 {% endblock %}
 {% block content %}
     <div id="notif" class="notif"></div>
@@ -25,11 +26,11 @@
     </div>
     <div class="input-row">
         <label for="echantillons">Échantillons (Liste séparés par des virgules) :</label>
-        <input type="text" id="echantillons" placeholder="FEST25001, FEST25002, MDMA">
+        <input name="echantillons" id="echantillons" placeholder="FEST25001, MDMA, etc...">
     </div>
     <div class="input-area">
         <label for="resultats">Résultats (Lignes de la liste séparés par des virgules) :</label>
-        <textarea rows="8" id="resultats" placeholder="MDMA&#10;MDMA&#10;MDMA,Caféine"></textarea>
+        <textarea rows="8" id="resultats" placeholder="MDMA\nMDMA\nMDMA,Caféine"></textarea>
     </div>
     <div class="btn-row" id="action">
         <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
@@ -48,5 +49,61 @@
             window.last_img = {{ last_img|tojson|safe }};
         </script>
     {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
-{% endblock %}
+    <script>
+    if (document.getElementById('echantillons')) {
+        fetch("{{ url_for('static', filename='echantillons.json') }}")
+        .then(r => r.json())
+        .then(list => {
+            const input = document.getElementById('echantillons');
+            new Tagify(input, {
+                whitelist: list,
+                dropdown: {
+                    enabled: 1,
+                    maxItems: 20,
+                    classname: 'tags-look',
+                    fuzzySearch: true,
+                    highlightFirst: true
+                }
+            });
+        });
+    }
+    
+    // Autocomplétion sur chaque ligne du textarea resultats
+    fetch("{{ url_for('static', filename='echantillons.json') }}")
+        .then(r => r.json())
+        .then(list => {
+            const textarea = document.getElementById('resultats');
+            if (!textarea) return;
+            let currentList = [];
+            textarea.addEventListener('input', function(e) {
+                const pos = textarea.selectionStart;
+                const value = textarea.value;
+                const lines = value.substr(0, pos).split(/\r?\n/);
+                const currentLineIdx = lines.length - 1;
+                const currentLine = lines[currentLineIdx];
+                currentList = list.filter(v => v.toLowerCase().startsWith(currentLine.trim().toLowerCase()));
+                // Affiche la liste dans la console pour debug
+                console.log('Suggestions:', currentList);
+            });
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab' && currentList.length > 0) {
+                    e.preventDefault();
+                    const pos = textarea.selectionStart;
+                    const value = textarea.value;
+                    const lines = value.substr(0, pos).split(/\r?\n/);
+                    const currentLineIdx = lines.length - 1;
+                    const before = lines.slice(0, currentLineIdx).join('\n');
+                    const after = value.substr(pos);
+                    const completed = currentList[0];
+                    lines[currentLineIdx] = completed;
+                    const newValue = (before ? before + '\n' : '') + lines[currentLineIdx] + after;
+                    textarea.value = newValue;
+                    textarea.selectionStart = textarea.selectionEnd = (before ? before.length + 1 : 0) + completed.length;
+                }
+            });
+        });
+    </script>
+    {% endblock %}

@@ -63,5 +63,27 @@ function saveData() {
     })
     .then(r => r.ok ? showNotif('Sauvegardé !', '#4caf50') : showNotif('Erreur sauvegarde', '#e53935'));
 }
+// Tagify autocompletion for all pages with #echantillons
+function initTagifyEchantillons() {
+    const input = document.getElementById('echantillons');
+    if (!input || typeof Tagify === 'undefined') return;
+    fetch('/static/echantillons.json')
+        .then(r => r.json())
+        .then(list => {
+            new Tagify(input, {
+                whitelist: list,
+                dropdown: {
+                    enabled: 1,
+                    maxItems: 20,
+                    classname: 'tags-look',
+                    fuzzySearch: true,
+                    highlightFirst: true
+                }
+            });
+        });
+}
+// Appelle automatiquement sur chaque page
+window.addEventListener('DOMContentLoaded', initTagifyEchantillons);
+
 // Pour compatibilité Flask/Jinja2, expose last_img côté JS si besoin
 window.last_img = typeof last_img !== 'undefined' ? last_img : null;
