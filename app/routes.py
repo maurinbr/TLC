@@ -45,3 +45,15 @@ def save():
     with open(db_path, 'w', encoding='utf-8') as f:
         json.dump(db, f, ensure_ascii=False, indent=2)
     return jsonify({'ok': True})
+
+@app.route('/explorateur')
+def explorateur():
+    return render_template('explorateur.html', active_page='explorateur')
+
+@app.route('/database')
+def database():
+    return render_template('database.html', active_page='database')
+
+@app.route('/parametre')
+def parametre():
+    return render_template('parametre.html', active_page='parametre')

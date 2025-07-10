@@ -1,31 +1,28 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Images détectées</title>
-    <meta http-equiv="refresh" content="10"> <!-- Rafraîchit la page toutes les 5 secondes -->
-    <style>
-        .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .btn-tlc {
-            padding: 10px 18px;
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-tlc:hover { background: #125ea2; }
-        .btn-tlc.active, .btn-tlc:active {
-            background: #4caf50 !important;
-            color: #fff;
-            box-shadow: 0 0 0 2px #388e3c;
-        }
-    </style>
-</head>
-<body>
-    <h1>Images détectées</h1>
+{% extends 'base.html' %}
+{% block title %}Accueil - TLC App{% endblock %}
+{% block head %}
+<style>
+    .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .btn-tlc {
+        padding: 10px 18px;
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-tlc:hover { background: #125ea2; }
+    .btn-tlc.active, .btn-tlc:active {
+        background: #4caf50 !important;
+        color: #fff;
+        box-shadow: 0 0 0 2px #388e3c;
+    }
+</style>
+{% endblock %}
+{% block content %}
+    <h1>Nouvelle analyse</h1>
     <div class="btn-row" id="éluant">
         <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Opiacé</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Général</button>
@@ -35,7 +32,7 @@
     <div class="btn-row" id="révélateur">
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV254</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV365</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Marquis-Mandein</button>
+        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Marquis-Mandelin</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Dragendorf</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mecke</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Liebermann</button>
@@ -44,6 +41,14 @@
         <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
         <button class="btn-tlc">Passer</button>
     </div>
+    {% if last_img %}
+        <div style="margin-bottom:30px;">
+            <img src="{{ url_for('static', filename='images/' + last_img) }}" alt="Dernière image" style="max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa;">
+            <br><b>{{ last_img }}</b>
+        </div>
+    {% else %}
+        <p>Aucune image détectée.</p>
+    {% endif %}
     <script>
         function selectBtn(btn, rowId) {
             const row = document.getElementById(rowId);
@@ -52,6 +57,18 @@
             // Sauvegarde le choix dans le localStorage
             localStorage.setItem('activeBtn_' + rowId, Array.from(row.children).indexOf(btn));
         }
+        function restoreActiveBtns() {
+            ['éluant', 'révélateur'].forEach(function(rowId) {
+                const idx = localStorage.getItem('activeBtn_' + rowId);
+                if (idx !== null) {
+                    const row = document.getElementById(rowId);
+                    if (row && row.children[idx]) {
+                        row.children[idx].classList.add('active');
+                    }
+                }
+            });
+        }
+        setTimeout(restoreActiveBtns, 100);
         function saveData() {
             const eluant = document.querySelector('#éluant .btn-tlc.active');
             const colorant = document.querySelector('#révélateur .btn-tlc.active');
@@ -70,14 +87,4 @@
             .then(r => r.ok ? alert('Sauvegardé !') : alert('Erreur sauvegarde'));
         }
     </script>
-    <h2>Dernière image ajoutée</h2>
-    {% if last_img %}
-        <div style="margin-bottom:30px;">
-            <img src="{{ url_for('static', filename='images/' + last_img) }}" alt="Dernière image" style="max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa;">
-            <br><b>{{ last_img }}</b>
-        </div>
-    {% else %}
-        <p>Aucune image détectée.</p>
-    {% endif %}
-</body>
-</html>
+{% endblock %}
