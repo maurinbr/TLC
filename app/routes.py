@@ -3,6 +3,17 @@ from app import app
 from app.services.watchdog_service import start_watchdog, images_detected
 import os
 import json
+import glob
+
+# Purge le dossier static/images au démarrage
+print("Purge du dossier static/images...")
+STATIC_IMG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static', 'images'))
+if os.path.exists(STATIC_IMG_DIR):
+    for f in glob.glob(os.path.join(STATIC_IMG_DIR, '*')):
+        try:
+            os.remove(f)
+        except Exception:
+            pass
 
 # Démarre le watchdog au lancement de l'app Flask
 WATCH_PATH = os.path.expanduser(r'C:/Users/bruno/OneDrive/Analyses')

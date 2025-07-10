@@ -1,5 +1,5 @@
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler, EVENT_TYPE_CREATED, EVENT_TYPE_MODIFIED
+from watchdog.observers.polling import PollingObserver  # <— important
 import threading
 import time
 import os
@@ -42,7 +42,7 @@ class MonHandler(FileSystemEventHandler):
                     os.remove(dest_path)
 
 def start_watchdog(path):
-    observer = Observer()
+    observer = PollingObserver(timeout=5)          
     observer.schedule(MonHandler(), path=path, recursive=False)
     observer.start()
     def run():
