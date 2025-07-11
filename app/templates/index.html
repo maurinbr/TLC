@@ -36,7 +36,8 @@
     </div>
     <div class="btn-row" id="action">
         <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
-        <button class="btn-tlc">Passer</button>
+        <button class="btn-tlc" onclick="startRefresh()">Passer</button>
+        <button class="btn-tlc" onclick="stopRefresh()">Arrêter le refresh</button>
     </div>
     {% if last_img %}
         <div style="margin-bottom:30px;">
@@ -55,6 +56,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script>
+    startRefresh(); // Démarre le refresh automatique au chargement
+
     if (document.getElementById('echantillons')) {
         fetch("{{ url_for('static', filename='echantillons.json') }}")
         .then(r => r.json())

@@ -1,9 +1,17 @@
-[
+[   
+    "EN25",
+    "FEST25",
+    "PA25",
+    "KS25",
+    "AG25",
+    "ACF25",
+    "CAP25",
+    "RI25",
+    "RU25",
+    "CRR25",
+
     "MDMA",
     "Cocaïne",
     "Amphétamine",
-    "Caféine",
-    "FEST25001",
-    "FEST25002",
-    "FEST25003"
+    "Caféine"
 ]

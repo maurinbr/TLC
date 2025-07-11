@@ -30,31 +30,53 @@ function saveData() {
     const colorant = document.querySelector('#révélateur .btn-tlc.active');
     const file = window.last_img;
     const echInput = document.getElementById('echantillons');
-    const resInput = document.getElementById('resultats');
-    let echantillons = [];
-    let resultats = [];
-    if (resInput && resInput.value.trim()) {
-        // Découpe chaque ligne, puis chaque ligne par les virgules
-        resultats = resInput.value.split(/\r?\n/).map(ligne =>
-            ligne.split(',').map(r => r.trim()).filter(Boolean)
-        );
-    }
+    // Récupère tous les spots dynamiques
+    const resultInputs = document.querySelectorAll('.resultats-input');
+    let echantillonsTags = [];
     if (echInput && echInput.value.trim()) {
-        const echList = echInput.value.split(',').map(s => s.trim()).filter(Boolean);
-        echantillons = echList.map((val, i) => {
-            console.log([i+1], val, resultats[i])
-            return {
-                [i+1]: val,
-                resultats: resultats[i] || []
-            };
+        try {
+            echantillonsTags = JSON.parse(echInput.value);
+        } catch {
+            echantillonsTags = echInput.value.split(',').map(s => ({ value: s.trim() })).filter(e => e.value);
+        }
+    }
+    let echantillon = [];
+    console.log('tous les échantillons:', echantillonsTags);
+    console.log('tous les resultats:', resultInputs);
+    for (let i = 1; i < (echantillonsTags.length*2); i=i+2) {
+        let resultats = [];
+        console.log(i + ' ieme résultat ' + resultInputs[i].value)
+        if (resultInputs[i] && typeof resultInputs[i].value === 'string') {
+            const val = resultInputs[i].value;
+            console.log('Valeur brute du resultats-input', i, ':', val);
+            if (val.trim()) {
+                try {
+                    const parsed = JSON.parse(val);
+                    console.log('Parsed Tagify du resultats-input', i, ':', parsed);
+                    if (Array.isArray(parsed)) {
+                        resultats = parsed.map(tag => tag.value);
+                    } else if (typeof parsed === 'string') {
+                        resultats = [parsed];
+                    }
+                } catch {
+                    resultats = val.split(',').map(s => s.trim()).filter(Boolean);
+                    console.log('Résultats split du resultats-input', i, ':', resultats);
+                }
+            }
+        }
+        let echVal = echantillonsTags[(i-1)/2] ? echantillonsTags[(i-1)/2].value : '';
+        console.log('Échantillon', i, ':', echVal, 'Résultats:', resultats);
+        echantillon.push({
+            echantillon: echVal,
+            resultats: resultats
         });
     }
-    console.log(file, eluant, colorant, echantillons);
+    console.log('Structure finale échantillon:', echantillon);
     if (!file || !eluant || !colorant) {
         showNotif('Référence absente (image, éluant, révélateur).', '#e53935');
         return;
     }
-    const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent], échantillon: echantillons };
+    const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent], echantillon: echantillon };
     showNotif('Données à sauvegarder : ' + JSON.stringify(dataToSave), '#1976d2');
     fetch('/save', {
         method: 'POST',
@@ -87,3 +109,18 @@ window.addEventListener('DOMContentLoaded', initTagifyEchantillons);
 
 // Pour compatibilité Flask/Jinja2, expose last_img côté JS si besoin
 window.last_img = typeof last_img !== 'undefined' ? last_img : null;
+
+let refreshInterval = null;
+function startRefresh() {
+    if (!refreshInterval) {
+        refreshInterval = setInterval(() => {
+            location.reload();
+        }, 1000); // 2s
+    }
+}
+function stopRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+}
