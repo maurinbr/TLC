@@ -4,4 +4,19 @@
 <h2>Explorateur</h2>
 <p>Page d'exploration des images et fichiers.</p>
 <p>Rechercher des produits, des échantillons</p>
+<button class="btn-tlc" onclick="document.getElementById('image-upload').click()">Charger une image</button>
+<input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+<script>
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    fetch('/upload-image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.ok ? alert('Image chargée !') : alert('Erreur upload'));
+}
+</script>
 {% endblock %}
