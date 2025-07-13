@@ -22,6 +22,7 @@ if os.path.exists(STATIC_IMG_DIR):
 WATCH_PATH = os.path.expanduser(r'C:/Users/bruno/OneDrive/Analyses')
 start_watchdog(WATCH_PATH)
 
+# Page de travail
 @app.route('/')
 @app.route('/index')
 def index():
@@ -45,6 +46,37 @@ def image_process():
     cv2.imwrite(out_path, neg)
     return send_file(out_path, mimetype='image/jpeg')
 
+# Fichier de config pour le chemin surveillé
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'data', 'config.json')
+
+def get_watch_path():
+    # Priorité cookie, sinon fichier config, sinon défaut
+    import flask
+    cookie_path = flask.request.cookies.get('watch_path')
+    if cookie_path:
+        return cookie_path
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                conf = json.load(f)
+            return conf.get('watch_path', WATCH_PATH)
+        except Exception:
+            pass
+    return WATCH_PATH
+
+# Route pour modifier le WATCH_PATH
+@app.route('/set-watch-path', methods=['POST'])
+def set_watch_path():
+    data = request.get_json()
+    new_path = data.get('watch_path')
+    if new_path:
+        # Sauvegarde dans le fichier config
+        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+        with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
+            json.dump({'watch_path': new_path}, f, ensure_ascii=False, indent=2)
+        return jsonify({'ok': True, 'watch_path': new_path})
+    return jsonify({'ok': False}), 400
+
 # Route pour recevoir les coordonnées du clic
 @app.route('/get-coords', methods=['POST'])
 def get_coords():
@@ -54,6 +86,7 @@ def get_coords():
     print(f"Coordonnées cliquées: x={x}, y={y}")
     return jsonify({'ok': True, 'x': x, 'y': y})
 
+# Route pour sauvegarder le journal des enregistrerments
 @app.route('/save-journal', methods=['POST'])
 def save_journal():
     data = request.get_json()
@@ -75,6 +108,7 @@ def save_journal():
         json.dump(journal, f, ensure_ascii=False, indent=2)
     return jsonify({'ok': True})
 
+# Route pour afficher le journal
 @app.route('/journal')
 def journal():
     import os, json
@@ -121,4 +155,4 @@ def database():
 
 @app.route('/parametres')
 def parametre():
-    return render_template('parametres.html', active_page='parametres', WATCH_PATH=WATCH_PATH)
+    return render_template('parametres.html', active_page='parametres', WATCH_PATH=get_watch_path())

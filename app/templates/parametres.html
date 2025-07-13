@@ -106,7 +106,19 @@ function showTab(tab) {
 function saveWatchPath() {
     const path = document.getElementById('watch-path-input').value;
     document.cookie = "watch_path=" + encodeURIComponent(path) + ";path=/;max-age=31536000";
-    alert("Dossier de travail enregistré");
+    fetch('/set-watch-path', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ watch_path: path })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            alert("Dossier de travail enregistré côté serveur : " + data.watch_path);
+        } else {
+            alert("Erreur lors de la sauvegarde côté serveur");
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
