@@ -84,6 +84,28 @@ function saveData() {
         body: JSON.stringify(dataToSave)
     })
     .then(r => r.ok ? showNotif('Sauvegardé !', '#4caf50') : showNotif('Erreur sauvegarde', '#e53935'));
+
+    // Génération du second JSON pour le journal
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10); // format YYYY-MM-DD
+    // file: tableau (même si une seule image)
+    const fileList = file ? [file] : [];
+    // liste des échantillons
+    const echantillonsList = echantillon.map(e => e.echantillon);
+    // liste des résultats (tous les résultats à plat)
+    const resultatsList = echantillon.flatMap(e => e.resultats);
+    const journalJson = {
+        date: dateStr,
+        file: fileList,
+        echantillon: echantillonsList,
+        resultat: resultatsList
+    };
+    // Envoi du journal à une route dédiée
+    fetch('/save-journal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(journalJson)
+    });
 }
 // Tagify autocompletion for all pages with #echantillons
 function initTagifyEchantillons() {
@@ -115,7 +137,7 @@ function startRefresh() {
     if (!refreshInterval) {
         refreshInterval = setInterval(() => {
             location.reload();
-        }, 1000); // 2s
+        }, 5000); // 5s
     }
 }
 function stopRefresh() {

@@ -25,6 +25,40 @@ def index():
     last_img = images_detected[-1] if images_detected else None
     return render_template('index.html', images=images_detected, last_img=last_img)
 
+@app.route('/save-journal', methods=['POST'])
+def save_journal():
+    data = request.get_json()
+    journal_path = os.path.join(os.path.dirname(__file__), 'data', 'journal.json')
+    os.makedirs(os.path.dirname(journal_path), exist_ok=True)
+    # Charge l'existant
+    if os.path.exists(journal_path):
+        with open(journal_path, 'r', encoding='utf-8') as f:
+            try:
+                journal = json.load(f)
+                if isinstance(journal, dict):
+                    journal = [journal]
+            except Exception:
+                journal = []
+    else:
+        journal = []
+    journal.append(data)
+    with open(journal_path, 'w', encoding='utf-8') as f:
+        json.dump(journal, f, ensure_ascii=False, indent=2)
+    return jsonify({'ok': True})
+
+@app.route('/journal')
+def journal():
+    import os, json
+    journal_path = os.path.join(os.path.dirname(__file__), 'data', 'journal.json')
+    if os.path.exists(journal_path):
+        with open(journal_path, 'r', encoding='utf-8') as f:
+            try:
+                journal = json.load(f)
+            except Exception:
+                journal = []
+    else:
+        journal = []
+    return render_template('journal.html', active_page='journal', journal=journal)
 @app.route('/save', methods=['POST'])
 def save():
     data = request.get_json()
@@ -54,6 +88,6 @@ def explorateur():
 def database():
     return render_template('database.html', active_page='database')
 
-@app.route('/parametre')
+@app.route('/parametres')
 def parametre():
     return render_template('parametres.html', active_page='parametres')

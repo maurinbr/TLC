@@ -7,12 +7,19 @@
 {% block content %}
     <div id="notif" class="notif"></div>
     <h1>Nouvelle analyse</h1>
-    <div class="btn-row" id="éluant">
+    
+    <div style="display: flex;">
+    <span style="flex: 1; background: #f0f0f0; padding: 20px; border-right: 1px solid #ccc; padding-right: 20px;">
+    <fieldset style="border: 2px solid #000000ff; border-radius: 10px; padding: 16px; margin: 20px 0; box-shadow: 1px 1px 8px rgba(0,0,0,0.1);">
+    <legend style="font-weight: bold; padding: 0 10px; color: #000000ff;">Conditions expérimentales</legend>
+
+    <div class="btn-row" id="éluant" style="margin-bottom: 12px;">
         <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Opiacé</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Général</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Cocaïne</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">THC</button>
     </div>
+
     <div class="btn-row" id="révélateur">
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV254</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV365</button>
@@ -24,6 +31,9 @@
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mandelin</button>
         <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Erhlich</button>
     </div>
+    </fieldset> 
+    <fieldset style="border: 2px solid #000000ff; border-radius: 10px; padding: 16px; margin: 20px 0; box-shadow: 1px 1px 8px rgba(0,0,0,0.1);">
+    <legend style="font-weight: bold; padding: 0 10px; color: #000000ff;">Données</legend>
     <div class="input-row">
         <label for="echantillons">Échantillons (Liste séparés par des virgules) :</label>
         <input name="echantillons" id="echantillons" placeholder="FEST25001, MDMA, etc...">
@@ -39,6 +49,11 @@
         <button class="btn-tlc" onclick="startRefresh()">Passer</button>
         <button class="btn-tlc" onclick="stopRefresh()">Arrêter le refresh</button>
     </div>
+    </fieldset> 
+        </span>
+
+    <span style="flex: 1;  background: #f0f0f0; padding: 20px; border-right: 1px solid #ccc; padding-right: 20px;">
+
     {% if last_img %}
         <div style="margin-bottom:30px;">
             <img src="{{ url_for('static', filename='images/' + last_img) }}" alt="Dernière image" style="max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa;">
@@ -52,12 +67,15 @@
             window.last_img = {{ last_img|tojson|safe }};
         </script>
     {% endif %}
+        </span>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script>
     startRefresh(); // Démarre le refresh automatique au chargement
 
+    // Autocomplétion sur chaque ligne du textarea resultats
     if (document.getElementById('echantillons')) {
         fetch("{{ url_for('static', filename='echantillons.json') }}")
         .then(r => r.json())
@@ -111,6 +129,7 @@
             });
         });
     
+    // Fonction pour ajouter une nouvelle ligne de résultats
     window.ajouterLigneResultat = function() {
         const container = document.getElementById('resultats-container');
         const ligneCount = container.querySelectorAll('.tagify-line').length + 2; // Spot 1 + nouveaux
@@ -142,7 +161,7 @@
                 });
             });
     }
-    // Tagify sur l'input Spot 1 au chargement
+    // Tagify sur l'input résultats au chargement
     if (document.querySelector('.resultats-input')) {
         fetch("{{ url_for('static', filename='echantillons.json') }}")
             .then(r => r.json())
