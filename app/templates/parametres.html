@@ -19,6 +19,14 @@
             <p>Paramètres liés à la qualité des analyses.</p>
         </div>
         <div id="tab-materiel" class="tab-pane" style="display:none;">
+            <div style="margin-top:30px;">
+                <label for="watch-path-input"><b>Dossier surveillé :</b></label>
+                <input type="text" id="watch-path-input" value="{{ WATCH_PATH if WATCH_PATH else '' }}" style="width:60%;">
+                <button class="btn-tlc" onclick="saveWatchPath()">Sauvegarder le dossier</button>
+                <input type="file" id="watch-path-picker" style="display:none;" webkitdirectory directory multiple>
+                <button class="btn-tlc" onclick="document.getElementById('watch-path-picker').click()">Sélectionner un dossier</button>
+            </div>
+
             <h3>Matériel et méthodes</h3>
             <p>Configuration du matériel utilisé.</p>
         </div>
@@ -95,6 +103,25 @@ function showTab(tab) {
         document.getElementById('tab-materiel').style.display = 'block';
     }
 }
+function saveWatchPath() {
+    const path = document.getElementById('watch-path-input').value;
+    document.cookie = "watch_path=" + encodeURIComponent(path) + ";path=/;max-age=31536000";
+    alert("Dossier de travail enregistré");
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const picker = document.getElementById('watch-path-picker');
+    picker.addEventListener('change', function(e) {
+        if (picker.files.length > 0) {
+            // Récupère le chemin du premier fichier sélectionné
+            const fullPath = picker.files[0].webkitRelativePath || picker.files[0].name;
+            // Extrait le dossier racine
+            const folder = fullPath.split('/')[0];
+            document.getElementById('watch-path-input').value = folder;
+            saveWatchPath();
+        }
+    });
+});
 </script>
 
 {% endblock %}

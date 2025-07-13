@@ -56,8 +56,15 @@
 
     {% if last_img %}
         <div style="margin-bottom:30px;">
-            <img src="{{ url_for('static', filename='images/' + last_img) }}" alt="Dernière image" style="max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa;">
+            <img id="main-image"
+                src="{{ url_for('static', filename='images/' + last_img) }}"
+                alt="Dernière image"
+                style="max-height:70vh; max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa; cursor:pointer;">
             <br><b>{{ last_img }}</b>
+            <div style="margin-top:10px;">
+                <button id="negatif-btn" style="padding:6px 18px; background:#1976d2; color:#fff; border:none; border-radius:6px; cursor:pointer;">Afficher le négatif</button>
+            </div>
+            <div id="coords-result" style="margin-top:10px; color:#1976d2;"></div>
         </div>
     {% else %}
         <p>Aucune image détectée.</p>

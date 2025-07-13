@@ -129,6 +129,57 @@ function initTagifyEchantillons() {
 // Appelle automatiquement sur chaque page
 window.addEventListener('DOMContentLoaded', initTagifyEchantillons);
 
+// Gestion du bouton pour afficher le négatif de l'image
+document.addEventListener('DOMContentLoaded', function() {
+    const negBtn = document.getElementById('negatif-btn');
+    const img = document.getElementById('main-image');
+    if (negBtn && img) {
+        let isNegatif = false;
+        negBtn.addEventListener('click', function() {
+            if (!isNegatif) {
+                img.src = '/image-process?' + Date.now();
+                negBtn.textContent = 'Afficher l\'original';
+            } else {
+                img.src = img.getAttribute('data-original-src');
+                negBtn.textContent = 'Afficher le négatif';
+            }
+            isNegatif = !isNegatif;
+        });
+        // Sauvegarde la src originale
+        img.setAttribute('data-original-src', img.src);
+    }
+});
+
+// Affichage des coordonnées du clic sur l'image
+document.addEventListener('DOMContentLoaded', function() {
+    const img = document.getElementById('main-image');
+    const coordsResult = document.getElementById('coords-result');
+    if (img && coordsResult) {
+        img.addEventListener('click', function(e) {
+            // Récupère la position du clic relative à l'image
+            const rect = img.getBoundingClientRect();
+            const x = Math.round(e.clientX - rect.left);
+            const y = Math.round(e.clientY - rect.top);
+
+            // Affiche les coordonnées sous l'image
+            coordsResult.textContent = `Coordonnées : x=${x}, y=${y}`;
+
+            // Envoie les coordonnées au serveur Flask
+            fetch('/get-coords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ x: x, y: y })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    coordsResult.textContent += " (envoyé au serveur)";
+                }
+            });
+        });
+    }
+});
+
 // Pour compatibilité Flask/Jinja2, expose last_img côté JS si besoin
 window.last_img = typeof last_img !== 'undefined' ? last_img : null;
 
