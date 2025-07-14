@@ -111,21 +111,39 @@ function saveData() {
 function initTagifyEchantillons() {
     const input = document.getElementById('echantillons');
     if (!input || typeof Tagify === 'undefined') return;
-    fetch('/static/echantillons.json')
-        .then(r => r.json())
-        .then(list => {
-            new Tagify(input, {
-                whitelist: list,
-                dropdown: {
-                    enabled: 1,
-                    maxItems: 20,
-                    classname: 'tags-look',
-                    fuzzySearch: true,
-                    highlightFirst: true
-                }
-            });
+    // Tagify sur tous les inputs .resultats-input avec produits.json uniquement
+    Promise.all([
+        fetch('/static/echantillons.json').then(r => r.json()),
+        fetch('/static/produits.json').then(r => r.json())
+    ]).then(([echantillons, produits]) => {
+        // Fusionne et dédoublonne
+        const tags = Array.from(new Set([...echantillons, ...produits]));
+        new Tagify(input, {
+            whitelist: tags,
+            dropdown: {
+                enabled: 1,
+                maxItems: 20,
+                classname: 'tags-look',
+                fuzzySearch: true,
+                highlightFirst: true
+            }
         });
-}
+    });
+            document.querySelectorAll('.resultats-input').forEach(input => {
+                // Détruit l'instance Tagify existante si présente
+                if (input.tagify) input.tagify.destroy();
+                new Tagify(input, {
+                    whitelist: produits,
+                    dropdown: {
+                        enabled: 1,
+                        maxItems: 20,
+                        classname: 'tags-look',
+                        fuzzySearch: true,
+                        highlightFirst: true
+                    }
+                });
+            });
+        };
 // Appelle automatiquement sur chaque page
 window.addEventListener('DOMContentLoaded', initTagifyEchantillons);
 
