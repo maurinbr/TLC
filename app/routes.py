@@ -83,7 +83,10 @@ def get_coords():
     data = request.get_json()
     x = data.get('x')
     y = data.get('y')
-    print(f"Coordonnées cliquées: x={x}, y={y}")
+    displayX = data.get('displayX', x)  # Utilise x si displayX n'est pas fourni
+    displayY = data.get('displayY', y)  # Utilise y si displayY n'est pas fourni
+    print(f"Coordonnées image originale: x={x}, y={y}")
+    print(f"Coordonnées affichées: x={displayX}, y={displayY}")
     # Acquisition RGB
     last_img = images_detected[-1] if images_detected else None
     rgb = None
@@ -105,7 +108,15 @@ def get_coords():
                     s = float(s / 255.0)  # Conversion en [0,1]
                     v = float(v / 255.0)  # Conversion en [0,1]
                     hsv = [h, s, v]
-    return jsonify({'ok': True, 'x': x, 'y': y, 'rgb': rgb, 'hsv': hsv})
+    return jsonify({
+        'ok': True, 
+        'x': x, 
+        'y': y, 
+        'displayX': displayX,
+        'displayY': displayY,
+        'rgb': rgb, 
+        'hsv': hsv
+    })
 
 # Route pour sauvegarder le journal des enregistrerments
 @app.route('/save-journal', methods=['POST'])

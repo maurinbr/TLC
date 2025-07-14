@@ -255,8 +255,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!bornesBtn && coordsResult) {
         bornesBtn = document.createElement('button');
         bornesBtn.id = 'bornes-btn';
+        bornesBtn.className = 'btn-tlc';  // Même classe que les autres boutons
         bornesBtn.textContent = 'Définir les bornes';
-        bornesBtn.style.margin = '10px 0';
+        // Ajouter des styles pour l'état désactivé
+        bornesBtn.style.transition = 'all 0.3s ease';
         coordsResult.parentNode.insertBefore(bornesBtn, coordsResult);
     }
 
@@ -269,6 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
             bornesY = [];
             coordsResult.textContent = 'Cliquez sur le dépôt puis sur le front.';
             bornesBtn.disabled = true;
+            bornesBtn.style.opacity = '0.6';
+            bornesBtn.style.cursor = 'not-allowed';
         });
     }
 
@@ -286,6 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     coordsResult.textContent = `Bornes définies : dépôt = y=${depot}, front = y=${front}`;
                     modeBornes = false;
                     bornesBtn.disabled = false;
+                    bornesBtn.style.opacity = '1';
+                    bornesBtn.style.cursor = 'pointer';
                     bornesDefinies = true;
                 } else {
                     coordsResult.textContent = 'Cliquez maintenant sur le front.';
@@ -299,13 +305,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Calcul du ratio de redimensionnement
+            const displayedWidth = img.clientWidth;
+            const displayedHeight = img.clientHeight;
+            const naturalWidth = img.naturalWidth;
+            const naturalHeight = img.naturalHeight;
+
+            // Calcul des coordonnées réelles sur l'image originale
+            const realX = Math.round((x * naturalWidth) / displayedWidth);
+            const realY = Math.round((y * naturalHeight) / displayedHeight);
+
             // Envoie les coordonnées au serveur Flask et demande les valeurs RGB et HSV
             fetch('/get-coords', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    x: x, 
-                    y: y,
+                    x: realX, 
+                    y: realY,
+                    displayX: x,
+                    displayY: y,
                     request_values: ['rgb', 'hsv']
                 })
             })
@@ -315,7 +333,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Réponse du serveur :', data);
                 if (data.ok) {
                     // Affiche les coordonnées et les valeurs RGB et HSV sous l'image
-                    let displayText = `Coordonnées : x=${x}, y=${y}`;
+                    // Utilise les coordonnées d'affichage pour l'affichage
+                    let displayText = `Coordonnées : x=${data.displayX}, y=${data.displayY}`;
                     if (data.rgb) {
                         displayText += ` | RGB : (${data.rgb.join(', ')})`;
                     }

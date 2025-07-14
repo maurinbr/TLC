@@ -70,11 +70,11 @@
     <span style="flex: 3;  background: #f0f0f0; padding: 20px; border-right: 1px solid #ccc; padding-right: 20px;">
 
         {% if last_img %}
-            <div style="margin-bottom:30px;">
+            <div style="margin-bottom:30px;">   
                 <img id="main-image"
                     src="{{ url_for('static', filename='images/' + last_img) }}"
                     alt="Dernière image"
-                    style="max-height:70vh; max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa; cursor:pointer;">
+                    style="max-height:70vh; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa; cursor:pointer;">
                 <br><b>{{ last_img }}</b>
                 <div style="margin-top:10px;">
                     <button id="negatif-btn" style="padding:6px 18px; background:#1976d2; color:#fff; border:none; border-radius:6px; cursor:pointer;">Afficher le négatif</button>
