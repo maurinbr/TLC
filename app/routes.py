@@ -96,7 +96,16 @@ def get_coords():
                 if 0 <= y < img.shape[0] and 0 <= x < img.shape[1]:
                     b, g, r = img[y, x]
                     rgb = [int(r), int(g), int(b)]
-    return jsonify({'ok': True, 'x': x, 'y': y, 'rgb': rgb})
+                    # Conversion en HSV
+                    pixel_bgr = np.uint8([[[ b, g, r ]]])
+                    pixel_hsv = cv2.cvtColor(pixel_bgr, cv2.COLOR_BGR2HSV)
+                    h, s, v = pixel_hsv[0][0]
+                    # Normalisation des valeurs HSV
+                    h = float(h * 2)  # OpenCV utilise H sur [0,180], on convertit en [0,360]
+                    s = float(s / 255.0)  # Conversion en [0,1]
+                    v = float(v / 255.0)  # Conversion en [0,1]
+                    hsv = [h, s, v]
+    return jsonify({'ok': True, 'x': x, 'y': y, 'rgb': rgb, 'hsv': hsv})
 
 # Route pour sauvegarder le journal des enregistrerments
 @app.route('/save-journal', methods=['POST'])

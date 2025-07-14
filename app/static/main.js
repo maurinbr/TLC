@@ -299,20 +299,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Envoie les coordonnées au serveur Flask
+            // Envoie les coordonnées au serveur Flask et demande les valeurs RGB et HSV
             fetch('/get-coords', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ x: x, y: y })
+                body: JSON.stringify({ 
+                    x: x, 
+                    y: y,
+                    request_values: ['rgb', 'hsv']
+                })
             })
             .then(r => r.json())
             .then(data => {
+                // Afficher la réponse complète du serveur pour le débogage
+                console.log('Réponse du serveur :', data);
                 if (data.ok) {
-                    // Affiche les coordonnées et la valeur RGB sous l'image
-                    coordsResult.textContent = `Coordonnées : x=${x}, y=${y} (envoyé au serveur)`;
+                    // Affiche les coordonnées et les valeurs RGB et HSV sous l'image
+                    let displayText = `Coordonnées : x=${x}, y=${y}`;
                     if (data.rgb) {
-                        coordsResult.textContent += ` | RGB : (${data.rgb.join(', ')})`;
+                        displayText += ` | RGB : (${data.rgb.join(', ')})`;
                     }
+                    if (data.hsv) {
+                        // Formater les valeurs HSV pour être plus lisibles
+                        const h = Math.round(data.hsv[0]);
+                        const s = Math.round(data.hsv[1] * 100);
+                        const v = Math.round(data.hsv[2] * 100);
+                        displayText += ` | HSV : (${h}°, ${s}%, ${v}%)`;
+                    }
+                    coordsResult.textContent = displayText;
                 }
             });
         });
