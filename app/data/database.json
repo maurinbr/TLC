@@ -1567,5 +1567,58 @@
         ]
       }
     ]
+  },
+  {
+    "file": "Analyse - 2025-01-31 15_51_33 - Copie - Copie.jpeg",
+    "exp": [
+      "THC",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "FEST25",
+        "resultats": [
+          "3-MEC"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "Analyse - 2025-01-31 15_44_12 - Copie.jpeg",
+    "exp": [
+      "THC",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "FEST25",
+        "resultats": [
+          "3-MEC"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 470,
+      "front": 579
+    }
+  },
+  {
+    "file": "Analyse - 2025-01-31 15_44_12 - Copie.jpeg",
+    "exp": [
+      "THC",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "FEST25",
+        "resultats": [
+          "3-MEC"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 470,
+      "front": 579
+    }
   }
 ]

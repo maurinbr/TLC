@@ -1,3 +1,8 @@
+// Variables globales pour les bornes
+let bornesDefinies = false;
+let depot = null;
+let front = null;
+
 // Scripts extraits de index.html
 function showNotif(msg, color) {
     // Création d'un conteneur de notifications s'il n'existe pas déjà
@@ -135,7 +140,21 @@ function saveData() {
         showNotif('Référence absente (image, éluant, révélateur).', '#e53935');
         return;
     }
-    const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent], echantillon: echantillon };
+    // Vérifier si les bornes sont définies
+    if (!bornesDefinies) {
+        showNotif('Les bornes (dépôt et front) doivent être définies avant de sauvegarder !', '#e53935');
+        return;
+    }
+
+    const dataToSave = { 
+        file: file, 
+        exp: [eluant.textContent, colorant.textContent], 
+        echantillon: echantillon,
+        bornes: {
+            depot: depot,
+            front: front
+        }
+    };
     showNotif('Données à sauvegarder : ' + JSON.stringify(dataToSave), '#1976d2');
     fetch('/save', {
         method: 'POST',
@@ -252,10 +271,6 @@ document.addEventListener('DOMContentLoaded', function() {
             bornesBtn.disabled = true;
         });
     }
-
-    let bornesDefinies = false;
-    let depot = null;
-    let front = null;
 
     if (img && coordsResult) {
         img.addEventListener('click', function(e) {
