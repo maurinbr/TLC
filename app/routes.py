@@ -84,7 +84,19 @@ def get_coords():
     x = data.get('x')
     y = data.get('y')
     print(f"Coordonnées cliquées: x={x}, y={y}")
-    return jsonify({'ok': True, 'x': x, 'y': y})
+    # Acquisition RGB
+    last_img = images_detected[-1] if images_detected else None
+    rgb = None
+    if last_img:
+        img_path = os.path.join(os.path.dirname(__file__), 'static', 'images', last_img)
+        if os.path.exists(img_path):
+            img = cv2.imread(img_path)
+            if img is not None:
+                # OpenCV lit en BGR, donc on convertit
+                if 0 <= y < img.shape[0] and 0 <= x < img.shape[1]:
+                    b, g, r = img[y, x]
+                    rgb = [int(r), int(g), int(b)]
+    return jsonify({'ok': True, 'x': x, 'y': y, 'rgb': rgb})
 
 # Route pour sauvegarder le journal des enregistrerments
 @app.route('/save-journal', methods=['POST'])

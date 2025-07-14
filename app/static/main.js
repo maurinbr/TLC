@@ -1,10 +1,69 @@
 // Scripts extraits de index.html
 function showNotif(msg, color) {
-    const notif = document.getElementById('notif');
+    // Création d'un conteneur de notifications s'il n'existe pas déjà
+    if (!document.getElementById('notif-container')) {
+        const container = document.createElement('div');
+        container.id = 'notif-container';
+        container.style.position = 'fixed';
+        container.style.zIndex = '9999';
+        container.style.width = '100%';
+        container.style.pointerEvents = 'none';
+        document.body.appendChild(container);
+    }
+    
+    // Création d'une nouvelle notification
+    const notif = document.createElement('div');
+    notif.className = 'notif';
     notif.textContent = msg;
     notif.style.background = color || '#323232';
+    notif.style.color = '#fff';
+    notif.style.padding = '10px 20px';
+    notif.style.margin = '10px';
+    notif.style.borderRadius = '5px';
+    notif.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
     notif.style.display = 'block';
-    setTimeout(() => { notif.style.display = 'none'; }, 2500);
+    notif.style.position = 'relative';
+    notif.style.transition = 'opacity 0.5s';
+    
+    // Les notifications vertes (#4caf50) apparaissent en haut, les autres en bas
+    const container = document.getElementById('notif-container');
+    if (color === '#4caf50') {
+        if (!container.querySelector('.top-notifs')) {
+            const topDiv = document.createElement('div');
+            topDiv.className = 'top-notifs';
+            topDiv.style.position = 'fixed';
+            topDiv.style.top = '20px';
+            topDiv.style.left = '50%';
+            topDiv.style.transform = 'translateX(-50%)';
+            topDiv.style.display = 'flex';
+            topDiv.style.flexDirection = 'column';
+            topDiv.style.alignItems = 'center';
+            container.appendChild(topDiv);
+        }
+        container.querySelector('.top-notifs').appendChild(notif);
+    } else {
+        if (!container.querySelector('.bottom-notifs')) {
+            const bottomDiv = document.createElement('div');
+            bottomDiv.className = 'bottom-notifs';
+            bottomDiv.style.position = 'fixed';
+            bottomDiv.style.bottom = '20px';
+            bottomDiv.style.left = '50%';
+            bottomDiv.style.transform = 'translateX(-50%)';
+            bottomDiv.style.display = 'flex';
+            bottomDiv.style.flexDirection = 'column';
+            bottomDiv.style.alignItems = 'center';
+            container.appendChild(bottomDiv);
+        }
+        container.querySelector('.bottom-notifs').appendChild(notif);
+    }
+    
+    // Faire disparaître après un délai
+    setTimeout(() => {
+        notif.style.opacity = '0';
+        setTimeout(() => {
+            notif.parentNode.removeChild(notif);
+        }, 3000);
+    }, 5000);
 }
 function selectBtn(btn, rowId) {
     const row = document.getElementById(rowId);
@@ -172,15 +231,58 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const img = document.getElementById('main-image');
     const coordsResult = document.getElementById('coords-result');
+    // Ajout du bouton "Définir les bornes"
+    let bornesBtn = document.getElementById('bornes-btn');
+    if (!bornesBtn && coordsResult) {
+        bornesBtn = document.createElement('button');
+        bornesBtn.id = 'bornes-btn';
+        bornesBtn.textContent = 'Définir les bornes';
+        bornesBtn.style.margin = '10px 0';
+        coordsResult.parentNode.insertBefore(bornesBtn, coordsResult);
+    }
+
+    let modeBornes = false;
+    let bornesY = [];
+
+    if (bornesBtn) {
+        bornesBtn.addEventListener('click', function() {
+            modeBornes = true;
+            bornesY = [];
+            coordsResult.textContent = 'Cliquez sur le dépôt puis sur le front.';
+            bornesBtn.disabled = true;
+        });
+    }
+
+    let bornesDefinies = false;
+    let depot = null;
+    let front = null;
+
     if (img && coordsResult) {
         img.addEventListener('click', function(e) {
-            // Récupère la position du clic relative à l'image
             const rect = img.getBoundingClientRect();
             const x = Math.round(e.clientX - rect.left);
             const y = Math.round(e.clientY - rect.top);
 
-            // Affiche les coordonnées sous l'image
-            coordsResult.textContent = `Coordonnées : x=${x}, y=${y}`;
+            if (modeBornes) {
+                bornesY.push(y);
+                if (bornesY.length === 2) {
+                    depot = Math.min(...bornesY);
+                    front = Math.max(...bornesY);
+                    coordsResult.textContent = `Bornes définies : dépôt = y=${depot}, front = y=${front}`;
+                    modeBornes = false;
+                    bornesBtn.disabled = false;
+                    bornesDefinies = true;
+                } else {
+                    coordsResult.textContent = 'Cliquez maintenant sur le front.';
+                }
+                return;
+            }
+
+            // Ne pas activer la fonction de récupération des coordonnées/RGB tant que les bornes ne sont pas définies
+            if (!bornesDefinies) {
+                coordsResult.textContent = 'Définissez d\'abord les bornes (dépôt et front) !';
+                return;
+            }
 
             // Envoie les coordonnées au serveur Flask
             fetch('/get-coords', {
@@ -191,7 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(r => r.json())
             .then(data => {
                 if (data.ok) {
-                    coordsResult.textContent += " (envoyé au serveur)";
+                    // Affiche les coordonnées et la valeur RGB sous l'image
+                    coordsResult.textContent = `Coordonnées : x=${x}, y=${y} (envoyé au serveur)`;
+                    if (data.rgb) {
+                        coordsResult.textContent += ` | RGB : (${data.rgb.join(', ')})`;
+                    }
                 }
             });
         });
