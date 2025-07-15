@@ -70,25 +70,37 @@ function showNotif(msg, color) {
         }, 3000);
     }, 5000);
 }
+
+// Fonction pour sélectionner un bouton et sauvegarder son état
 function selectBtn(btn, rowId) {
     const row = document.getElementById(rowId);
+    // Désactive tous les boutons du groupe
     Array.from(row.getElementsByClassName('btn-tlc')).forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    // Sauvegarde le choix dans le localStorage
-    localStorage.setItem('activeBtn_' + rowId, Array.from(row.children).indexOf(btn));
+    // Trouve l'index du bouton parmi tous les boutons de la même classe dans ce groupe
+    const allButtons = Array.from(row.getElementsByClassName('btn-tlc'));
+    const buttonIndex = allButtons.indexOf(btn);
+    // Sauvegarde l'index dans le localStorage
+    localStorage.setItem('activeBtn_' + rowId, buttonIndex);
 }
+// Restaure l'état des boutons actifs depuis le localStorage
 function restoreActiveBtns() {
     ['éluant', 'révélateur'].forEach(function(rowId) {
         const idx = localStorage.getItem('activeBtn_' + rowId);
         if (idx !== null) {
             const row = document.getElementById(rowId);
-            if (row && row.children[idx]) {
-                row.children[idx].classList.add('active');
+            if (row) {
+                const allButtons = Array.from(row.getElementsByClassName('btn-tlc'));
+                if (allButtons[idx]) {
+                    allButtons[idx].classList.add('active');
+                }
             }
         }
     });
 }
 setTimeout(restoreActiveBtns, 100);
+
+// Fonction pour sauvegarder les données
 function saveData() {
     const eluant = document.querySelector('#éluant .btn-tlc.active');
     const colorant = document.querySelector('#révélateur .btn-tlc.active');

@@ -1734,5 +1734,24 @@
       "depot": 172,
       "front": 323
     }
+  },
+  {
+    "file": "Analyse - 2025-01-31 15_50_39 - Copie.jpeg",
+    "exp": [
+      "Opiacé",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "FEST25100",
+        "resultats": [
+          "3-MEC"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 674,
+      "front": 1000
+    }
   }
 ]

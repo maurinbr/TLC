@@ -6,8 +6,16 @@
 <p>Rechercher des produits, des échantillons</p>
 <p>Affichage du contenu de la base de données.</p>
 
-<p>- Si je choisi un échantillon, toutes les plaques vont s'afficher</p>
-<p>- Si je choisi un produits, je peux trier ou sélectionner une méthode de révélation particulière ou par échantillon</p>
+<div style="margin: 20px 0;">
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <input type="text" id="search-input" placeholder="Rechercher un échantillon..." 
+               style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex-grow: 1;">
+        <button class="btn-tlc" onclick="searchDatabase()">Rechercher</button>
+    </div>
+    <div id="search-results" style="margin-top: 20px;">
+        <!-- Les résultats de recherche seront affichés ici -->
+    </div>
+</div>
 
 <button class="btn-tlc" onclick="document.getElementById('image-upload').click()">Charger une image</button>
 <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
@@ -23,5 +31,50 @@ function handleImageUpload(event) {
     })
     .then(r => r.ok ? alert('Image chargée !') : alert('Erreur upload'));
 }
+
+function searchDatabase() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const resultsDiv = document.getElementById('search-results');
+    
+    // Récupérer le contenu de database.json via l'API
+    fetch('/get-database')
+        .then(response => response.json())
+        .then(data => {
+            // Filtrer les résultats qui contiennent le terme recherché dans leurs échantillons
+            const matches = data.filter(entry => {
+                if (Array.isArray(entry.echantillon)) {
+                    return entry.echantillon.some(e => {
+                        return e.echantillon && e.echantillon.toLowerCase().includes(searchTerm);
+                    });
+                }
+                return false;
+            });
+
+            // Afficher les résultats
+            if (matches.length > 0) {
+                resultsDiv.innerHTML = matches.map(match => `
+                    <div style="border: 1px solid #ccc; padding: 15px; margin: 10px 0; border-radius: 4px; background: #f9f9f9;">
+                        <strong>Image:</strong> ${match.file}<br>
+                        <strong>Éluant/Révélateur:</strong> ${match.exp.join(' / ')}<br>
+                        <strong>Échantillons:</strong> ${match.echantillon.map(e => e.echantillon).join(', ')}
+                        ${match.bornes ? `<br><strong>Bornes:</strong> dépôt=${match.bornes.depot}, front=${match.bornes.front}` : ''}
+                    </div>
+                `).join('');
+            } else {
+                resultsDiv.innerHTML = '<p style="color: #666;">Aucun résultat trouvé.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la recherche:', error);
+            resultsDiv.innerHTML = '<p style="color: red;">Erreur lors de la recherche dans la base de données.</p>';
+        });
+}
+
+// Permettre la recherche en appuyant sur Entrée
+document.getElementById('search-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchDatabase();
+    }
+});
 </script>
 {% endblock %}

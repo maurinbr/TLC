@@ -188,3 +188,16 @@ def database():
 @app.route('/parametres')
 def parametre():
     return render_template('parametres.html', active_page='parametres', WATCH_PATH=get_watch_path())
+
+# Route pour obtenir le contenu de database.json
+@app.route('/get-database')
+def get_database():
+    db_path = os.path.join(os.path.dirname(__file__), 'data', 'database.json')
+    if os.path.exists(db_path):
+        try:
+            with open(db_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return jsonify(data)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    return jsonify([])  # Retourne une liste vide si le fichier n'existe pas
