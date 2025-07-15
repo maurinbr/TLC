@@ -1753,5 +1753,30 @@
       "depot": 674,
       "front": 1000
     }
+  },
+  {
+    "file": "Analyse - 2025-01-31 15_43_07 - Copie.jpeg",
+    "exp": [
+      "Opiacé",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "FEST25",
+        "resultats": [
+          "MDMA"
+        ]
+      },
+      {
+        "echantillon": "FEST26",
+        "resultats": [
+          "MDMA"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 85,
+      "front": 642
+    }
   }
 ]

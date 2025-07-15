@@ -201,3 +201,8 @@ def get_database():
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     return jsonify([])  # Retourne une liste vide si le fichier n'existe pas
+
+# Route pour servir les images depuis le dossier surveillé
+@app.route('/watch-images/<path:filename>')
+def watch_images(filename):
+    return send_file(os.path.join(WATCH_PATH, filename))
