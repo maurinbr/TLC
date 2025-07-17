@@ -19,7 +19,8 @@ if os.path.exists(STATIC_IMG_DIR):
             pass
 
 # Démarre le watchdog au lancement de l'app Flask
-WATCH_PATH = os.path.expanduser(r'C:/Users/bruno/OneDrive/Analyses')
+# Le chemin s'adapte automatiquement à l'utilisateur courant
+WATCH_PATH = os.path.expanduser(r'~/OneDrive/Analyses')
 start_watchdog(WATCH_PATH)
 
 # Page de travail
