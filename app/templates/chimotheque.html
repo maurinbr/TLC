@@ -170,6 +170,13 @@
     transform: scale(1.05);
 }
 
+.sample-cell:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-color: #007bff;
+    transform: scale(1.05);
+}
+
 .sample-cell.occupied {
     background-color: #d4edda;
     border-color: #28a745;
@@ -371,6 +378,7 @@ function generateGrid() {
             const cell = document.createElement('div');
             cell.className = 'sample-cell';
             cell.dataset.position = position;
+            cell.tabIndex = 0; // Rendre la cellule focusable avec TAB
             
             if (sampleData && sampleData.contenu) {
                 cell.classList.add('occupied');
@@ -383,6 +391,15 @@ function generateGrid() {
             }
             
             cell.addEventListener('click', () => openSampleModal(position));
+            
+            // Ajouter support pour la touche ENTER quand la cellule est focusée
+            cell.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openSampleModal(position);
+                }
+            });
+            
             gridContainer.appendChild(cell);
         }
     });
@@ -459,6 +476,44 @@ async function saveSample() {
     
     bootstrap.Modal.getInstance(document.getElementById('sampleModal')).hide();
     showAlert('Échantillon sauvegardé avec succès', 'success');
+    
+    // Mettre le focus sur la case suivante
+    setTimeout(() => {
+        focusNextCell(selectedPosition);
+    }, 100);
+}
+
+function focusNextCell(currentPosition) {
+    // Définir l'ordre des positions A1, A2, ..., A10, B1, B2, ..., J10
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    const cols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    
+    // Trouver la position actuelle
+    const currentRow = currentPosition.charAt(0);
+    const currentCol = parseInt(currentPosition.slice(1));
+    
+    let nextRow = currentRow;
+    let nextCol = currentCol + 1;
+    
+    // Si on dépasse la colonne 10, passer à la ligne suivante
+    if (nextCol > 10) {
+        nextCol = 1;
+        const currentRowIndex = rows.indexOf(currentRow);
+        if (currentRowIndex < rows.length - 1) {
+            nextRow = rows[currentRowIndex + 1];
+        } else {
+            // Si on est à la dernière case (J10), revenir à A1
+            nextRow = 'A';
+            nextCol = 1;
+        }
+    }
+    
+    const nextPosition = `${nextRow}${nextCol}`;
+    const nextCell = document.querySelector(`[data-position="${nextPosition}"]`);
+    
+    if (nextCell) {
+        nextCell.focus();
+    }
 }
 
 async function clearSample() {
