@@ -1,0 +1,11 @@
+boiteID,nom,loc,echantillon,contenu,notes
+BOITE-001,Échantillons organiques A,Armoire-A1,A1,Benzène,Solvant pur
+BOITE-001,Échantillons organiques A,Armoire-A1,A2,Toluène,Solvant pur
+BOITE-001,Échantillons organiques A,Armoire-A1,A3,Acétone,Solvant pur
+BOITE-001,Échantillons organiques A,Armoire-A1,B1,Chloroforme,Attention toxique
+BOITE-001,Échantillons organiques A,Armoire-A1,B2,Méthanol,Solvant pur
+BOITE-002,Échantillons standards,Armoire-A2,A1,Standard caféine,Référence HPLC
+BOITE-002,Échantillons standards,Armoire-A2,A2,Standard théophylline,Référence HPLC
+BOITE-002,Échantillons standards,Armoire-A2,B1,Standard théobromine,Référence HPLC
+BOITE-003,Extraits végétaux,Armoire-B1,A1,Extrait thé vert,Extraction éthanolique
+BOITE-003,Extraits végétaux,Armoire-B1,A2,Extrait café,Extraction aqueuse

@@ -7,6 +7,8 @@ from app.services.watchdog_service import start_watchdog, images_detected
 import os
 import json
 import glob
+import csv
+import pandas as pd
 
 # Purge le dossier static/images au démarrage
 print("Purge du dossier static/images...")
@@ -207,3 +209,51 @@ def get_database():
 @app.route('/watch-images/<path:filename>')
 def watch_images(filename):
     return send_file(os.path.join(WATCH_PATH, filename))
+
+# Routes pour la chimithèque
+@app.route('/chimotheque')
+def chimotheque():
+    return render_template('chimotheque.html', active_page='chimotheque')
+
+@app.route('/get-chimotheque')
+def get_chimotheque():
+    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'chimotheque.csv')
+    if os.path.exists(csv_path):
+        try:
+            data = []
+            with open(csv_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    data.append(row)
+            return jsonify(data)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    return jsonify([])
+
+@app.route('/save-chimotheque', methods=['POST'])
+def save_chimotheque():
+    try:
+        data = request.get_json()
+        csv_path = os.path.join(os.path.dirname(__file__), 'data', 'chimotheque.csv')
+        os.makedirs(os.path.dirname(csv_path), exist_ok=True)
+        
+        with open(csv_path, 'w', encoding='utf-8', newline='') as f:
+            if data:
+                fieldnames = ['boiteID', 'nom', 'loc', 'echantillon', 'contenu', 'notes']
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                for item in data:
+                    # S'assurer que tous les champs existent
+                    row = {
+                        'boiteID': item.get('boiteID', ''),
+                        'nom': item.get('nom', ''),
+                        'loc': item.get('loc', ''),
+                        'echantillon': item.get('echantillon', ''),
+                        'contenu': item.get('contenu', ''),
+                        'notes': item.get('notes', '')
+                    }
+                    writer.writerow(row)
+        
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
