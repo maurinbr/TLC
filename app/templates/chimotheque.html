@@ -86,8 +86,16 @@
                         <div class="modal-body">
                             <form id="newBoxForm">
                                 <div class="mb-3">
-                                    <label for="newBoiteID" class="form-label">ID de la boîte</label>
+                                    <label for="newBoiteID" class="form-label">ID de la boîte <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="newBoiteID" required placeholder="ex: BOITE-004">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newBoxName" class="form-label">Nom/Description <span class="text-muted">(optionnel)</span></label>
+                                    <input type="text" class="form-control" id="newBoxName" placeholder="ex: Échantillons organiques">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newBoxLoc" class="form-label">Localisation <span class="text-muted">(optionnel)</span></label>
+                                    <input type="text" class="form-control" id="newBoxLoc" placeholder="ex: Armoire-A1">
                                 </div>
                             </form>
                         </div>
@@ -393,7 +401,22 @@ function openSampleModal(position) {
     document.getElementById('sampleModalTitle').textContent = `Échantillon ${position}`;
     document.getElementById('clearBtn').style.display = sampleData?.contenu ? 'inline-block' : 'none';
     
-    new bootstrap.Modal(document.getElementById('sampleModal')).show();
+    // Ajouter l'event listener pour la touche ENTER sur le champ contenu
+    const sampleContentInput = document.getElementById('sampleContent');
+    sampleContentInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            saveSample();
+        }
+    });
+    
+    const modal = new bootstrap.Modal(document.getElementById('sampleModal'));
+    modal.show();
+    
+    // Mettre le focus sur l'input sampleContent après l'ouverture de la modal
+    document.getElementById('sampleModal').addEventListener('shown.bs.modal', function() {
+        document.getElementById('sampleContent').focus();
+    }, { once: true });
 }
 
 async function saveSample() {
@@ -463,6 +486,8 @@ function showNewBoxModal() {
 
 async function createNewBox() {
     const boiteID = document.getElementById('newBoiteID').value.trim();
+    const nom = document.getElementById('newBoxName').value.trim();
+    const loc = document.getElementById('newBoxLoc').value.trim();
     
     if (!boiteID) {
         showAlert('L\'ID de la boîte est requis', 'error');
@@ -475,11 +500,11 @@ async function createNewBox() {
         return;
     }
     
-    // Créer une entrée de base pour la boîte avec des valeurs par défaut
+    // Créer une entrée de base pour la boîte avec des valeurs par défaut si vides
     const boxEntry = {
         boiteID: boiteID,
-        nom: boiteID, // Utiliser l'ID comme nom par défaut
-        loc: 'Non définie', // Localisation par défaut
+        nom: nom || boiteID, // Utiliser le nom saisi ou l'ID comme défaut
+        loc: loc || 'Non définie', // Utiliser la localisation saisie ou "Non définie" comme défaut
         echantillon: 'A1', // Position de référence
         contenu: '',
         notes: ''
