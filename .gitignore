@@ -1,3 +1,8 @@
+# Données sensibles à ne pas publier
+app/data/chimotheque.csv
+app/data/echantillon.json
+app/data/produits.json
+app/data/journal.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
