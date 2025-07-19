@@ -8,7 +8,7 @@ import os
 import json
 import glob
 import csv
-import pandas as pd
+import pandas as pd 
 
 # Purge le dossier static/images au démarrage
 print("Purge du dossier static/images...")
@@ -209,6 +209,7 @@ def get_database():
 @app.route('/watch-images/<path:filename>')
 def watch_images(filename):
     return send_file(os.path.join(WATCH_PATH, filename))
+
 
 # Routes pour la chimithèque
 @app.route('/chimotheque')

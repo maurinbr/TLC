@@ -410,30 +410,18 @@ function generateGrid() {
 function openSampleModal(position) {
     selectedPosition = position;
     const sampleData = currentBoxData.find(item => item.echantillon === position);
-    
     document.getElementById('samplePosition').textContent = position;
     document.getElementById('sampleContent').value = sampleData?.contenu || '';
     document.getElementById('sampleNotes').value = sampleData?.notes || '';
-    
     document.getElementById('sampleModalTitle').textContent = `Échantillon ${position}`;
     document.getElementById('clearBtn').style.display = sampleData?.contenu ? 'inline-block' : 'none';
-    
-    // Ajouter l'event listener pour la touche ENTER sur le champ contenu
-    const sampleContentInput = document.getElementById('sampleContent');
-    sampleContentInput.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            saveSample();
-        }
-    });
-    
-    const modal = new bootstrap.Modal(document.getElementById('sampleModal'));
+    // Toujours ouvrir la modale, même si la case est vide
+    let modal = bootstrap.Modal.getInstance(document.getElementById('sampleModal'));
+    if (!modal) {
+        modal = new bootstrap.Modal(document.getElementById('sampleModal'));
+    }
     modal.show();
-    
-    // Mettre le focus sur l'input sampleContent après l'ouverture de la modal
-    document.getElementById('sampleModal').addEventListener('shown.bs.modal', function() {
-        document.getElementById('sampleContent').focus();
-    }, { once: true });
+    document.getElementById('sampleContent').focus();
 }
 
 async function saveSample() {
@@ -545,34 +533,32 @@ async function createNewBox() {
     const loc = document.getElementById('newBoxLoc').value.trim();
     
     if (!boiteID) {
-        showAlert('L\'ID de la boîte est requis', 'error');
+        showAlert("L'ID de la boîte est requis", 'error');
         return;
     }
-    
     // Vérifier si la boîte existe déjà
     if (chimothequeData.some(item => item.boiteID === boiteID)) {
         showAlert('Une boîte avec cet ID existe déjà', 'error');
         return;
     }
-    
-    // Créer une entrée de base pour la boîte avec des valeurs par défaut si vides
+    // Créer une entrée de base pour la boîte (sans échantillon par défaut)
+    // On ne crée pas d'échantillon A1 vide
+    // On ajoute juste les infos de la boîte
+    // Les échantillons seront ajoutés via la grille
     const boxEntry = {
         boiteID: boiteID,
-        nom: nom || boiteID, // Utiliser le nom saisi ou l'ID comme défaut
-        loc: loc || 'Non définie', // Utiliser la localisation saisie ou "Non définie" comme défaut
-        echantillon: 'A1', // Position de référence
-        contenu: '',
-        notes: ''
+        nom: nom || boiteID,
+        loc: loc || 'Non définie'
     };
-    
-    chimothequeData.push(boxEntry);
+    // On ne push pas boxEntry directement, on attend l'ajout d'échantillons
+    // On ajoute une entrée pour la boîte dans la liste des boîtes
+    // On utilise un champ virtuel pour la sélection
+    chimothequeData.push({...boxEntry, echantillon: null, contenu: '', notes: ''});
     await saveChimothequeData();
     populateBoxSelect();
-    
     // Sélectionner automatiquement la nouvelle boîte
     document.getElementById('boiteSelect').value = boiteID;
     loadBox(boiteID);
-    
     bootstrap.Modal.getInstance(document.getElementById('newBoxModal')).hide();
     showAlert('Nouvelle boîte créée avec succès', 'success');
 }
