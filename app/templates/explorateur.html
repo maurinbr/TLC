@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}Explorateur - TLC App{% endblock %}
+{% block content %}
+<h2>Explorateur</h2>
+<p>Page d'exploration des images et fichiers.</p>
+<p>Rechercher des produits, des échantillons</p>
+<p>Affichage du contenu de la base de données.</p>
+
+<div style="margin: 20px 0;">
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px;">
+            <div style="flex-grow: 1;">
+                <label for="search-echantillon" style="display: block; margin-bottom: 5px;">Rechercher par échantillon :</label>
+                <input type="text" id="search-echantillon" placeholder="ex: FEST25001..." 
+                       style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+            </div>
+            <div style="flex-grow: 1;">
+                <label for="search-resultat" style="display: block; margin-bottom: 5px;">Rechercher par résultat :</label>
+                <input type="text" id="search-resultat" placeholder="ex: MDMA, Caféine..." 
+                       style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <button class="btn-tlc" onclick="searchDatabase()">Rechercher</button>
+        </div>
+    </div>
+    <div id="search-results" style="margin-top: 20px;">
+        <!-- Les résultats de recherche seront affichés ici -->
+    </div>
+</div>
+
+<button class="btn-tlc" onclick="document.getElementById('image-upload').click()">Charger une image</button>
+<input type="file" id="image-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+<script>
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    fetch('/upload-image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.ok ? alert('Image chargée !') : alert('Erreur upload'));
+}
+
+function searchDatabase() {
+    const searchEchantillon = document.getElementById('search-echantillon').value.toLowerCase();
+    const searchResultat = document.getElementById('search-resultat').value.toLowerCase();
+    const resultsDiv = document.getElementById('search-results');
+    
+    // Déverrouiller les champs de recherche
+    const echantillonInput = document.getElementById('search-echantillon');
+    const resultatInput = document.getElementById('search-resultat');
+    echantillonInput.disabled = false;
+    resultatInput.disabled = false;
+    echantillonInput.style.backgroundColor = '';
+    resultatInput.style.backgroundColor = '';
+    
+    // Récupérer le contenu de database.json via l'API
+    fetch('/get-database')
+        .then(response => response.json())
+        .then(data => {
+            // Filtrer les résultats qui correspondent aux critères de recherche
+            const matches = data.filter(entry => {
+                // Si les deux champs sont vides, on ne retourne rien
+                if (searchEchantillon === '' && searchResultat === '') {
+                    return false;
+                }
+
+                // Si on a un terme de recherche pour l'échantillon
+                if (searchEchantillon !== '') {
+                    return Array.isArray(entry.echantillon) && 
+                           entry.echantillon.some(e => e.echantillon && 
+                               e.echantillon.toLowerCase().includes(searchEchantillon)
+                           );
+                }
+
+                // Si on a un terme de recherche pour les résultats
+                if (searchResultat !== '') {
+                    return Array.isArray(entry.echantillon) &&
+                           entry.echantillon.some(e => 
+                               e.resultats && 
+                               e.resultats.some(r => r.toLowerCase().includes(searchResultat))
+                           );
+                }
+
+                return false;
+            });
+
+            // Afficher les résultats
+            if (matches.length > 0) {
+                const groupSize = 5; // Nombre d'éléments par ligne
+                const rows = [];
+                
+                // Grouper les résultats par lignes de 5
+                for (let i = 0; i < matches.length; i += groupSize) {
+                    rows.push(matches.slice(i, i + groupSize));
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(${groupSize}, 1fr); gap: 20px; padding: 10px;">
+                        ${matches.map(match => `
+                            <div style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #f9f9f9;">
+                                <div style="margin-bottom: 15px;">
+                                    <img src="/watch-images/${match.file}" alt="${match.file}" 
+                                         style="width: 100%; height: 300px; object-fit: contain; border-radius: 6px; box-shadow: 0 3px 6px rgba(0,0,0,0.15);">
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0 0 8px 0; color: #333; font-size: 14px;">${match.file}</h4>
+                                    <div style="margin: 0 0 8px 0;">
+                                        <strong style="font-size: 12px;">Conditions expérimentales :</strong>
+                                        <ul style="list-style-type: none; padding: 0; margin: 5px 0;">
+                                            ${match.exp.map(condition => `
+                                                <li style="font-size: 12px; background: #fff; padding: 4px 8px; margin: 3px 0; border-radius: 3px; border: 1px solid #eee;">
+                                                    ${condition}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                    ${match.bornes ? `<p style="margin: 0 0 5px 0; font-size: 12px;"><strong>Bornes:</strong><br>dépôt=${match.bornes.depot}, front=${match.bornes.front}</p>` : ''}
+                                    <div style="margin-top: 10px;">
+                                        <strong style="font-size: 12px;">Échantillons et Résultats:</strong>
+                                        <ul style="list-style-type: none; padding: 0; margin: 5px 0; font-size: 12px;">
+                                            ${match.echantillon.map(e => `
+                                                <li style="background: #fff; padding: 4px 8px; margin: 3px 0; border-radius: 3px; border: 1px solid #eee;">
+                                                    <strong>${e.echantillon}</strong>
+                                                    ${e.resultats ? `<br>${e.resultats.join(', ')}` : ''}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = '<p style="color: #666;">Aucun résultat trouvé.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la recherche:', error);
+            resultsDiv.innerHTML = '<p style="color: red;">Erreur lors de la recherche dans la base de données.</p>';
+        });
+}
+
+// Permettre la recherche en appuyant sur Entrée dans n'importe quel champ
+document.getElementById('search-echantillon').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchDatabase();
+    }
+});
+
+document.getElementById('search-resultat').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchDatabase();
+    }
+});
+
+// Désactiver un champ quand l'autre est utilisé
+document.getElementById('search-echantillon').addEventListener('input', function(e) {
+    const resultatInput = document.getElementById('search-resultat');
+    if (this.value) {
+        resultatInput.disabled = true;
+        resultatInput.style.backgroundColor = '#f5f5f5';
+    } else {
+        resultatInput.disabled = false;
+        resultatInput.style.backgroundColor = '';
+    }
+});
+
+document.getElementById('search-resultat').addEventListener('input', function(e) {
+    const echantillonInput = document.getElementById('search-echantillon');
+    if (this.value) {
+        echantillonInput.disabled = true;
+        echantillonInput.style.backgroundColor = '#f5f5f5';
+    } else {
+        echantillonInput.disabled = false;
+        echantillonInput.style.backgroundColor = '';
+    }
+});
+</script>
+{% endblock %}

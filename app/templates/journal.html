@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Journal - TLC App{% endblock %}
+{% block content %}
+<h2>Journal</h2>
+<div style="max-width:700px;margin:30px auto;">
+{% if journal and journal|length > 0 %}
+    {% for entry in journal %}
+        <div style="border-top:2px dashed #1976d2; margin:18px 0; padding-top:12px;">
+            <div style="font-weight:bold; color:#1976d2;">{{ entry.date }}</div>
+            <div style="margin-left:18px;">
+                <span style="color:#333;">Fichier :</span>
+                {% if entry.file %}
+                    {{ entry.file|join(', ') }}
+                {% else %}
+                    <em>Aucun</em>
+                {% endif %}
+            </div>
+            <div style="margin-left:18px;">
+                <span style="color:#333;">Échantillons :</span>
+                {% if entry.echantillon %}
+                    {{ entry.echantillon|join(', ') }}
+                {% else %}
+                    <em>Aucun</em>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+    <div style="border-top:2px dashed #1976d2; margin:18px 0;"></div>
+{% else %}
+    <p>Aucune entrée dans le journal.</p>
+{% endif %}
+</div>
+{% endblock %}

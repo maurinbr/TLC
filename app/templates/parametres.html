@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Paramètre - TLC App{% endblock %}
+{% block content %}
+
+<h2>Paramètres</h2>
+<div class="tab-container">
+    <div class="tab-header">
+        <button class="tab-btn active" onclick="showTab('utilisateurs')">Utilisateurs</button>
+        <button class="tab-btn" onclick="showTab('qualite')">Programme de Qualité</button>
+        <button class="tab-btn" onclick="showTab('materiel')">Matériel et méthodes</button>
+    </div>
+    <div class="tab-content">
+        <div id="tab-utilisateurs" class="tab-pane" style="display:block;">
+            <h3>Utilisateurs</h3>
+            <p>Gestion des utilisateurs de l'application.</p>
+        </div>
+        <div id="tab-qualite" class="tab-pane" style="display:none;">
+            <h3>Programme de qualité</h3>
+            <p>Paramètres liés à la qualité des analyses.</p>
+        </div>
+        <div id="tab-materiel" class="tab-pane" style="display:none;">
+            <div style="margin-top:30px;">
+                <label for="watch-path-input"><b>Dossier surveillé :</b></label>
+                <input type="text" id="watch-path-input" value="{{ WATCH_PATH if WATCH_PATH else '' }}" style="width:60%;">
+                <button class="btn-tlc" onclick="saveWatchPath()">Sauvegarder le dossier</button>
+                <input type="file" id="watch-path-picker" style="display:none;" webkitdirectory directory multiple>
+                <button class="btn-tlc" onclick="document.getElementById('watch-path-picker').click()">Sélectionner un dossier</button>
+            </div>
+
+            <h3>Matériel et méthodes</h3>
+            <p>Configuration du matériel utilisé.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+
+.tab-container {
+    border: 1px solid #cde7d8;
+    border-radius: 14px;
+    background: #f6fcf9;
+    max-width: 800px;
+    margin: 40px auto;
+    box-shadow: 0 4px 18px #e0f7e9;
+    overflow: hidden;
+}
+.tab-header {
+    display: flex;
+    border-bottom: 2px solid #cde7d8;
+    background: linear-gradient(90deg, #e0f7e9 0%, #f6fcf9 100%);
+    border-radius: 14px 14px 0 0;
+}
+.tab-btn {
+    flex: 1;
+    padding: 16px 0;
+    background: none;
+    border: none;
+    font-size: 1.15em;
+    cursor: pointer;
+    color: #357a5b;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, color 0.2s;
+    border-radius: 14px 14px 0 0;
+}
+.tab-btn.active {
+    background: #cde7d8;
+    color: #1b4d36;
+    font-weight: bold;
+    border-bottom: 3px solid #4caf50;
+    box-shadow: 0 2px 8px #e0f7e9;
+}
+.tab-btn:not(.active):hover {
+    background: #e0f7e9;
+    color: #2e6e4c;
+}
+.tab-content {
+    padding: 32px 28px 28px 28px;
+    background: #fff;
+    border-radius: 0 0 14px 14px;
+}
+.tab-pane {
+    animation: fadeIn 0.3s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+
+<script>
+function showTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.style.display = 'none');
+    if(tab === 'utilisateurs') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('tab-utilisateurs').style.display = 'block';
+    } else if(tab === 'qualite') {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('tab-qualite').style.display = 'block';
+    } else if(tab === 'materiel') {
+        document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+        document.getElementById('tab-materiel').style.display = 'block';
+    }
+}
+function saveWatchPath() {
+    const path = document.getElementById('watch-path-input').value;
+    document.cookie = "watch_path=" + encodeURIComponent(path) + ";path=/;max-age=31536000";
+    fetch('/set-watch-path', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ watch_path: path })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            alert("Dossier de travail enregistré côté serveur : " + data.watch_path);
+        } else {
+            alert("Erreur lors de la sauvegarde côté serveur");
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const picker = document.getElementById('watch-path-picker');
+    picker.addEventListener('change', function(e) {
+        if (picker.files.length > 0) {
+            // Récupère le chemin du premier fichier sélectionné
+            const fullPath = picker.files[0].webkitRelativePath || picker.files[0].name;
+            // Extrait le dossier racine
+            const folder = fullPath.split('/')[0];
+            document.getElementById('watch-path-input').value = folder;
+            saveWatchPath();
+        }
+    });
+});
+</script>
+
+{% endblock %}

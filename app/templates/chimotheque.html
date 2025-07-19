@@ -1,0 +1,706 @@
+{% extends "base.html" %}
+
+{% block title %}Chimithèque - TLC{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-boxes"></i> Chimithèque - Gestion des Échantillons
+            </h2>
+            
+            <!-- Sélection de boîte -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <label for="boiteSelect" class="form-label"><strong>Sélectionner une boîte :</strong></label>
+                            <select id="boiteSelect" class="form-select">
+                                <option value="">-- Choisir une boîte --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-success" onclick="showNewBoxModal()">
+                                <i class="fas fa-plus"></i> Nouvelle Boîte
+                            </button>
+                            <button class="btn btn-info" onclick="showBoxInfoModal()" id="infoBoxBtn" disabled>
+                                <i class="fas fa-info-circle"></i> Info Boîte
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="boiteInfo" class="text-muted">
+                                <small>Sélectionnez une boîte pour voir son contenu</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barre de recherche -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <label for="searchInput" class="form-label"><strong>Rechercher un échantillon :</strong></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Rechercher dans le contenu ou les notes des échantillons...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="searchResults" class="mt-2">
+                                <!-- Résultats de recherche -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grille 10x10 des échantillons -->
+            <div class="card" id="gridCard" style="display: none;">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <span id="currentBoxTitle">Contenu de la boîte</span>
+                        <span class="badge bg-primary ms-2" id="occupancyBadge">0/100</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="sample-grid" id="sampleGrid">
+                        <!-- Grille générée dynamiquement -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal pour nouvelle boîte -->
+            <div class="modal fade" id="newBoxModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Créer une nouvelle boîte</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="newBoxForm">
+                                <div class="mb-3">
+                                    <label for="newBoiteID" class="form-label">ID de la boîte <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="newBoiteID" required placeholder="ex: BOITE-004">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newBoxName" class="form-label">Nom/Description <span class="text-muted">(optionnel)</span></label>
+                                    <input type="text" class="form-control" id="newBoxName" placeholder="ex: Échantillons organiques">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newBoxLoc" class="form-label">Localisation <span class="text-muted">(optionnel)</span></label>
+                                    <input type="text" class="form-control" id="newBoxLoc" placeholder="ex: Armoire-A1">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="button" class="btn btn-primary" onclick="createNewBox()">Créer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal pour modifier un échantillon -->
+            <div class="modal fade" id="sampleModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="sampleModalTitle">Échantillon</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="sampleForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Position : <strong id="samplePosition"></strong></label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sampleContent" class="form-label">Contenu de l'échantillon</label>
+                                    <input type="text" class="form-control" id="sampleContent" placeholder="Description du contenu">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sampleNotes" class="form-label">Notes</label>
+                                    <textarea class="form-control" id="sampleNotes" rows="3" placeholder="Notes additionnelles"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" onclick="clearSample()" id="clearBtn">Vider</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="button" class="btn btn-primary" onclick="saveSample()">Sauvegarder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sample-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.sample-cell {
+    aspect-ratio: 1;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: bold;
+    transition: all 0.2s;
+    min-height: 40px;
+}
+
+.sample-cell:hover {
+    border-color: #007bff;
+    transform: scale(1.05);
+}
+
+.sample-cell:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-color: #007bff;
+    transform: scale(1.05);
+}
+
+.sample-cell.occupied {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.sample-cell.empty {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+
+.grid-label {
+    text-align: center;
+    font-weight: bold;
+    color: #495057;
+    padding: 5px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 30px repeat(10, 1fr);
+    grid-template-rows: 30px repeat(10, 1fr);
+    gap: 2px;
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+.grid-row-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #495057;
+}
+
+.grid-col-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #495057;
+}
+
+.search-result {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-result:hover {
+    background-color: #cce7ff;
+}
+
+.search-result .position {
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.search-result .box-info {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.search-result .content {
+    font-size: 0.95em;
+    margin-top: 2px;
+}
+
+.sample-cell.highlighted {
+    background-color: #fff3cd !important;
+    border-color: #ffc107 !important;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+</style>
+
+<script>
+let chimothequeData = [];
+let currentBox = null;
+let currentBoxData = [];
+let selectedPosition = null;
+
+// Charger les données au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    loadChimothequeData();
+    setupSearchListener();
+});
+
+function setupSearchListener() {
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch(this.value.trim());
+        }, 300); // Délai de 300ms pour éviter trop de recherches
+    });
+}
+
+async function loadChimothequeData() {
+    try {
+        const response = await fetch('/get-chimotheque');
+        chimothequeData = await response.json();
+        populateBoxSelect();
+    } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        showAlert('Erreur lors du chargement des données', 'error');
+    }
+}
+
+function populateBoxSelect() {
+    const select = document.getElementById('boiteSelect');
+    const boxes = [...new Set(chimothequeData.map(item => item.boiteID))];
+    
+    select.innerHTML = '<option value="">-- Choisir une boîte --</option>';
+    boxes.forEach(boxId => {
+        const boxData = chimothequeData.find(item => item.boiteID === boxId);
+        select.innerHTML += `<option value="${boxId}">${boxId} - ${boxData.nom}</option>`;
+    });
+    
+    select.addEventListener('change', function() {
+        if (this.value) {
+            loadBox(this.value);
+        } else {
+            hideGrid();
+        }
+    });
+}
+
+function loadBox(boxId) {
+    currentBox = boxId;
+    currentBoxData = chimothequeData.filter(item => item.boiteID === boxId);
+    
+    if (currentBoxData.length > 0) {
+        const boxInfo = currentBoxData[0];
+        document.getElementById('boiteInfo').innerHTML = `
+            <strong>${boxInfo.nom}</strong><br>
+            <small>Localisation: ${boxInfo.loc}</small>
+        `;
+        document.getElementById('currentBoxTitle').textContent = `${boxInfo.boiteID} - ${boxInfo.nom}`;
+        document.getElementById('infoBoxBtn').disabled = false;
+    }
+    
+    generateGrid();
+    document.getElementById('gridCard').style.display = 'block';
+}
+
+function hideGrid() {
+    document.getElementById('gridCard').style.display = 'none';
+    document.getElementById('boiteInfo').innerHTML = '<small>Sélectionnez une boîte pour voir son contenu</small>';
+    document.getElementById('infoBoxBtn').disabled = true;
+    currentBox = null;
+}
+
+function generateGrid() {
+    const gridContainer = document.getElementById('sampleGrid');
+    gridContainer.innerHTML = '';
+    gridContainer.className = 'grid-container';
+    
+    // Case vide en haut à gauche
+    const emptyCorner = document.createElement('div');
+    gridContainer.appendChild(emptyCorner);
+    
+    // Labels colonnes (1-10)
+    for (let col = 1; col <= 10; col++) {
+        const colLabel = document.createElement('div');
+        colLabel.className = 'grid-col-label';
+        colLabel.textContent = col;
+        gridContainer.appendChild(colLabel);
+    }
+    
+    // Lignes avec labels (A-J) et cellules
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    let occupiedCount = 0;
+    
+    rows.forEach(row => {
+        // Label de ligne
+        const rowLabel = document.createElement('div');
+        rowLabel.className = 'grid-row-label';
+        rowLabel.textContent = row;
+        gridContainer.appendChild(rowLabel);
+        
+        // Cellules de la ligne
+        for (let col = 1; col <= 10; col++) {
+            const position = `${row}${col}`;
+            const sampleData = currentBoxData.find(item => item.echantillon === position);
+            
+            const cell = document.createElement('div');
+            cell.className = 'sample-cell';
+            cell.dataset.position = position;
+            cell.tabIndex = 0; // Rendre la cellule focusable avec TAB
+            
+            if (sampleData && sampleData.contenu) {
+                cell.classList.add('occupied');
+                cell.textContent = position;
+                cell.title = sampleData.contenu;
+                occupiedCount++;
+            } else {
+                cell.classList.add('empty');
+                cell.textContent = position;
+            }
+            
+            cell.addEventListener('click', () => openSampleModal(position));
+            
+            // Ajouter support pour la touche ENTER quand la cellule est focusée
+            cell.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openSampleModal(position);
+                }
+            });
+            
+            gridContainer.appendChild(cell);
+        }
+    });
+    
+    document.getElementById('occupancyBadge').textContent = `${occupiedCount}/100`;
+}
+
+function openSampleModal(position) {
+    selectedPosition = position;
+    const sampleData = currentBoxData.find(item => item.echantillon === position);
+    document.getElementById('samplePosition').textContent = position;
+    document.getElementById('sampleContent').value = sampleData?.contenu || '';
+    document.getElementById('sampleNotes').value = sampleData?.notes || '';
+    document.getElementById('sampleModalTitle').textContent = `Échantillon ${position}`;
+    document.getElementById('clearBtn').style.display = sampleData?.contenu ? 'inline-block' : 'none';
+    // Toujours ouvrir la modale, même si la case est vide
+    let modal = bootstrap.Modal.getInstance(document.getElementById('sampleModal'));
+    if (!modal) {
+        modal = new bootstrap.Modal(document.getElementById('sampleModal'));
+    }
+    modal.show();
+    document.getElementById('sampleContent').focus();
+}
+
+async function saveSample() {
+    const content = document.getElementById('sampleContent').value.trim();
+    const notes = document.getElementById('sampleNotes').value.trim();
+    
+    if (!content) {
+        showAlert('Le contenu de l\'échantillon est requis', 'error');
+        return;
+    }
+    
+    // Trouver ou créer l'entrée pour cet échantillon
+    let sampleIndex = currentBoxData.findIndex(item => item.echantillon === selectedPosition);
+    const boxInfo = currentBoxData[0] || chimothequeData.find(item => item.boiteID === currentBox);
+    
+    const sampleData = {
+        boiteID: currentBox,
+        nom: boxInfo.nom,
+        loc: boxInfo.loc,
+        echantillon: selectedPosition,
+        contenu: content,
+        notes: notes
+    };
+    
+    if (sampleIndex >= 0) {
+        currentBoxData[sampleIndex] = sampleData;
+        const globalIndex = chimothequeData.findIndex(item => 
+            item.boiteID === currentBox && item.echantillon === selectedPosition
+        );
+        if (globalIndex >= 0) {
+            chimothequeData[globalIndex] = sampleData;
+        }
+    } else {
+        currentBoxData.push(sampleData);
+        chimothequeData.push(sampleData);
+    }
+    
+    await saveChimothequeData();
+    generateGrid();
+    
+    bootstrap.Modal.getInstance(document.getElementById('sampleModal')).hide();
+    showAlert('Échantillon sauvegardé avec succès', 'success');
+    
+    // Mettre le focus sur la case suivante
+    setTimeout(() => {
+        focusNextCell(selectedPosition);
+    }, 100);
+}
+
+function focusNextCell(currentPosition) {
+    // Définir l'ordre des positions A1, A2, ..., A10, B1, B2, ..., J10
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    const cols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    
+    // Trouver la position actuelle
+    const currentRow = currentPosition.charAt(0);
+    const currentCol = parseInt(currentPosition.slice(1));
+    
+    let nextRow = currentRow;
+    let nextCol = currentCol + 1;
+    
+    // Si on dépasse la colonne 10, passer à la ligne suivante
+    if (nextCol > 10) {
+        nextCol = 1;
+        const currentRowIndex = rows.indexOf(currentRow);
+        if (currentRowIndex < rows.length - 1) {
+            nextRow = rows[currentRowIndex + 1];
+        } else {
+            // Si on est à la dernière case (J10), revenir à A1
+            nextRow = 'A';
+            nextCol = 1;
+        }
+    }
+    
+    const nextPosition = `${nextRow}${nextCol}`;
+    const nextCell = document.querySelector(`[data-position="${nextPosition}"]`);
+    
+    if (nextCell) {
+        nextCell.focus();
+    }
+}
+
+async function clearSample() {
+    if (confirm('Êtes-vous sûr de vouloir vider cet échantillon ?')) {
+        // Supprimer de currentBoxData
+        currentBoxData = currentBoxData.filter(item => item.echantillon !== selectedPosition);
+        
+        // Supprimer de chimothequeData
+        chimothequeData = chimothequeData.filter(item => 
+            !(item.boiteID === currentBox && item.echantillon === selectedPosition)
+        );
+        
+        await saveChimothequeData();
+        generateGrid();
+        
+        bootstrap.Modal.getInstance(document.getElementById('sampleModal')).hide();
+        showAlert('Échantillon vidé avec succès', 'success');
+    }
+}
+
+function showNewBoxModal() {
+    document.getElementById('newBoxForm').reset();
+    new bootstrap.Modal(document.getElementById('newBoxModal')).show();
+}
+
+async function createNewBox() {
+    const boiteID = document.getElementById('newBoiteID').value.trim();
+    const nom = document.getElementById('newBoxName').value.trim();
+    const loc = document.getElementById('newBoxLoc').value.trim();
+    
+    if (!boiteID) {
+        showAlert("L'ID de la boîte est requis", 'error');
+        return;
+    }
+    // Vérifier si la boîte existe déjà
+    if (chimothequeData.some(item => item.boiteID === boiteID)) {
+        showAlert('Une boîte avec cet ID existe déjà', 'error');
+        return;
+    }
+    // Créer une entrée de base pour la boîte (sans échantillon par défaut)
+    // On ne crée pas d'échantillon A1 vide
+    // On ajoute juste les infos de la boîte
+    // Les échantillons seront ajoutés via la grille
+    const boxEntry = {
+        boiteID: boiteID,
+        nom: nom || boiteID,
+        loc: loc || 'Non définie'
+    };
+    // On ne push pas boxEntry directement, on attend l'ajout d'échantillons
+    // On ajoute une entrée pour la boîte dans la liste des boîtes
+    // On utilise un champ virtuel pour la sélection
+    chimothequeData.push({...boxEntry, echantillon: null, contenu: '', notes: ''});
+    await saveChimothequeData();
+    populateBoxSelect();
+    // Sélectionner automatiquement la nouvelle boîte
+    document.getElementById('boiteSelect').value = boiteID;
+    loadBox(boiteID);
+    bootstrap.Modal.getInstance(document.getElementById('newBoxModal')).hide();
+    showAlert('Nouvelle boîte créée avec succès', 'success');
+}
+
+async function saveChimothequeData() {
+    try {
+        const response = await fetch('/save-chimotheque', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chimothequeData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erreur lors de la sauvegarde');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showAlert('Erreur lors de la sauvegarde', 'error');
+    }
+}
+
+function performSearch(searchTerm) {
+    const resultsContainer = document.getElementById('searchResults');
+    
+    if (!searchTerm || searchTerm.length < 2) {
+        resultsContainer.innerHTML = '';
+        clearHighlights();
+        return;
+    }
+    
+    // Rechercher dans tous les échantillons
+    const results = chimothequeData.filter(item => {
+        if (!item.contenu && !item.notes) return false;
+        
+        const contentMatch = item.contenu && item.contenu.toLowerCase().includes(searchTerm.toLowerCase());
+        const notesMatch = item.notes && item.notes.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        return contentMatch || notesMatch;
+    });
+    
+    displaySearchResults(results, searchTerm);
+    highlightMatchesInGrid(results);
+}
+
+function displaySearchResults(results, searchTerm) {
+    const resultsContainer = document.getElementById('searchResults');
+    
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<small class="text-muted">Aucun résultat trouvé</small>';
+        return;
+    }
+    
+    resultsContainer.innerHTML = `<small class="text-success">${results.length} résultat(s) trouvé(s):</small>`;
+    
+    results.forEach(result => {
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'search-result';
+        resultDiv.onclick = () => goToSample(result.boiteID, result.echantillon);
+        
+        const highlightedContent = highlightText(result.contenu || '', searchTerm);
+        const highlightedNotes = highlightText(result.notes || '', searchTerm);
+        
+        resultDiv.innerHTML = `
+            <div class="position">${result.echantillon}</div>
+            <div class="box-info">${result.boiteID} - ${result.nom}</div>
+            <div class="content">${highlightedContent}</div>
+            ${highlightedNotes ? `<div class="content"><small>Notes: ${highlightedNotes}</small></div>` : ''}
+        `;
+        
+        resultsContainer.appendChild(resultDiv);
+    });
+}
+
+function highlightText(text, searchTerm) {
+    if (!text || !searchTerm) return text;
+    
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+}
+
+function highlightMatchesInGrid(results) {
+    clearHighlights();
+    
+    if (currentBox) {
+        results.forEach(result => {
+            if (result.boiteID === currentBox) {
+                const cell = document.querySelector(`[data-position="${result.echantillon}"]`);
+                if (cell) {
+                    cell.classList.add('highlighted');
+                }
+            }
+        });
+    }
+}
+
+function clearHighlights() {
+    document.querySelectorAll('.sample-cell.highlighted').forEach(cell => {
+        cell.classList.remove('highlighted');
+    });
+}
+
+function goToSample(boiteID, position) {
+    // Changer de boîte si nécessaire
+    if (currentBox !== boiteID) {
+        document.getElementById('boiteSelect').value = boiteID;
+        loadBox(boiteID);
+        
+        // Attendre que la grille soit générée puis ouvrir la modal
+        setTimeout(() => {
+            openSampleModal(position);
+        }, 100);
+    } else {
+        openSampleModal(position);
+    }
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+    clearHighlights();
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

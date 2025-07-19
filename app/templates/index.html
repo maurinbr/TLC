@@ -1,83 +1,219 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Images détectées</title>
-    <meta http-equiv="refresh" content="10"> <!-- Rafraîchit la page toutes les 5 secondes -->
-    <style>
-        .btn-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .btn-tlc {
-            padding: 10px 18px;
-            background: #1976d2;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-tlc:hover { background: #125ea2; }
-        .btn-tlc.active, .btn-tlc:active {
-            background: #4caf50 !important;
-            color: #fff;
-            box-shadow: 0 0 0 2px #388e3c;
-        }
-    </style>
-</head>
-<body>
-    <h1>Images détectées</h1>
-    <div class="btn-row" id="éluant">
-        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Opiacé</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Général</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Cocaïne</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">THC</button>
-    </div>
-    <div class="btn-row" id="révélateur">
-        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV254</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV365</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Marquis-Mandein</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Dragendorf</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mecke</button>
-        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Liebermann</button>
-    </div>
-    <div class="btn-row" id="action">
-        <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
-        <button class="btn-tlc">Passer</button>
-    </div>
-    <script>
-        function selectBtn(btn, rowId) {
-            const row = document.getElementById(rowId);
-            Array.from(row.getElementsByClassName('btn-tlc')).forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            // Sauvegarde le choix dans le localStorage
-            localStorage.setItem('activeBtn_' + rowId, Array.from(row.children).indexOf(btn));
-        }
-        function saveData() {
-            const eluant = document.querySelector('#éluant .btn-tlc.active');
-            const colorant = document.querySelector('#révélateur .btn-tlc.active');
-            const file = {{ last_img|tojson|safe }};
-            if (!file || !eluant || !colorant) {
-                alert('Veuillez sélectionner un éluant, un révélateur et avoir une image.');
-                return;
-            }
-            const dataToSave = { file: file, exp: [eluant.textContent, colorant.textContent] };
-            alert('Données à sauvegarder :\n' + JSON.stringify(dataToSave, null, 2));
-            fetch('/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSave)
-            })
-            .then(r => r.ok ? alert('Sauvegardé !') : alert('Erreur sauvegarde'));
-        }
-    </script>
-    <h2>Dernière image ajoutée</h2>
-    {% if last_img %}
-        <div style="margin-bottom:30px;">
-            <img src="{{ url_for('static', filename='images/' + last_img) }}" alt="Dernière image" style="max-width:400px; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa;">
-            <br><b>{{ last_img }}</b>
+{% extends 'base.html' %}
+{% block title %}Accueil - TLC App{% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+{% endblock %}
+{% block content %}
+    
+<div id="notif" class="notif"></div>
+<h1>Nouvelle analyse</h1>
+
+    <!-- Vue générale -->
+    <div style="display: flex;">
+    <!-- Vue de gauche : Conditions expérimentales -->
+    <span style="flex: 1; background: #f0f0f0; padding: 20px; border-right: 1px solid #ccc; padding-right: 20px;">
+        
+        <!-- Attribuer des conditions expérimentales-->
+        <fieldset style="border: 2px solid #000000ff; border-radius: 10px; padding: 16px; margin: 20px 0; box-shadow: 1px 1px 8px rgba(0,0,0,0.1);">
+            <legend style="font-weight: bold; padding: 0 10px; color: #000000ff;">Conditions expérimentales</legend>
+            <label name="Eluant">Eluant :</label>
+            <div class="btn-row" id="éluant" style="margin-bottom: 12px;">
+                <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Opiacé</button>
+                <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Général</button>
+                <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">Cocaïne</button>
+                <button class="btn-tlc" onclick="selectBtn(this, 'éluant')">THC</button>
+            </div>
+
+            <label name="Révélateur">Révélateur :</label>
+            <div class="btn-row" id="révélateur">
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <div style="width:100%; display:flex; gap:8px;">
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV254</button>
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">UV365</button>
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Marquis-Mandelin</button>
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Dragendorf</button>
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mecke</button>
+                    </div>
+                    <div style="width:100%; display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Liebermann</button>
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Marquis</button>
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Mandelin</button>
+                        <button class="btn-tlc" onclick="selectBtn(this, 'révélateur')">Erhlich</button>
+                    </div>
+                </div>
+            </div>
+        </fieldset> 
+
+        <!-- Champs pour taguer les échantillons et résultats -->
+        <fieldset style="border: 2px solid #000000ff; border-radius: 10px; padding: 16px; margin: 20px 0; box-shadow: 1px 1px 8px rgba(0,0,0,0.1);">
+            <legend style="font-weight: bold; padding: 0 10px; color: #000000ff;">Données</legend>
+            <div class="input-row">
+                <label for="echantillons">Échantillons (Liste séparés par des virgules) :</label>
+                <input name="echantillons" id="echantillons" placeholder="FEST25001, MDMA, etc...">
+            </div>
+            <div class="input-area">
+                <label class="spot-label">Résultats 1 :</label>
+                <input class="resultats-input" name="resultats[]" placeholder="MDMA, Caféine">
+                <div id="resultats-container"></div>
+                <button type="button" onclick="ajouterLigneResultat()">+ Ajouter un spot</button>
+            </div>
+            <div class="btn-row" id="action">
+                <button class="btn-tlc" onclick="saveData()">Sauvegarder</button>
+                <button class="btn-tlc" onclick="startRefresh()">Passer</button>
+                <button class="btn-tlc" onclick="stopRefresh()">Arrêter le refresh</button>
+            </div>
+        </fieldset> 
+    </span>
+
+    <!-- Vue centrale : Image et analyse -->
+    <span style="flex: 3;  background: #f0f0f0; padding: 20px; border-right: 1px solid #ccc; padding-right: 20px;">
+
+        {% if last_img %}
+            <div style="margin-bottom:30px;">   
+                <img id="main-image"
+                    src="{{ url_for('static', filename='images/' + last_img) }}"
+                    alt="Dernière image"
+                    style="max-height:70vh; border:2px solid #4caf50; box-shadow:2px 2px 12px #aaa; cursor:pointer;">
+                <br><b>{{ last_img }}</b>
+                <div style="margin-top:10px;">
+                    <button id="negatif-btn" style="padding:6px 18px; background:#1976d2; color:#fff; border:none; border-radius:6px; cursor:pointer;">Afficher le négatif</button>
+                </div>
+                <div id="coords-result" style="margin-top:10px; color:#1976d2;"></div>
+            </div>
+        {% else %}
+            <p>Aucune image détectée.</p>
+        {% endif %}
+        {% if last_img %}
+            <script>
+                window.last_img = {{ last_img|tojson|safe }};
+            </script>
+        {% endif %}
+
+        
+    </span>
+
+    <!-- Vue de droite : Interprétation -->
+    <span style="flex: 1; background: #f0f0f0; padding: 20px;">
+        <h2>Interprétation</h2>
+        <div style="margin-top:30px;">
+            <fieldset style="border:2px solid #000000ff; border-radius:10px; padding:16px; box-shadow:1px 1px 8px #e0f7e9; background:#f6fcf9;">
+                <legend style="font-weight:bold; color:#1976d2; padding:0 10px;">Interprétation</legend>
+                <textarea id="interpretation" style="width:100%; min-height:80px; border-radius:6px; border:1px solid #cde7d8; padding:8px; font-size:1em; resize:vertical;" placeholder="Saisir ici l'interprétation ou le commentaire..."></textarea>
+            </fieldset>
         </div>
-    {% else %}
-        <p>Aucune image détectée.</p>
-    {% endif %}
-</body>
-</html>
+    </span>    
+    </div>
+  
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script>
+    startRefresh(); // Démarre le refresh automatique au chargement
+
+    // Autocomplétion pour les données d'échantillon
+    if (document.getElementById('echantillons')) {
+        fetch("{{ url_for('static', filename='echantillons.json') }}")
+        .then(r => r.json())
+        .then(list => {
+            const input = document.getElementById('echantillons');
+            new Tagify(input, {
+                whitelist: list,
+                dropdown: {
+                    enabled: 1,
+                    maxItems: 20,
+                    classname: 'tags-look',
+                    fuzzySearch: true,
+                    highlightFirst: true
+                }
+            });
+        });
+    }
+    
+    fetch("{{ url_for('static', filename='echantillons.json') }}")
+        .then(r => r.json())
+        .then(list => {
+            const textarea = document.getElementById('resultats');
+            if (!textarea) return;
+            let currentList = [];
+            textarea.addEventListener('input', function(e) {
+                const pos = textarea.selectionStart;
+                const value = textarea.value;
+                const lines = value.substr(0, pos).split(/\r?\n/);
+                const currentLineIdx = lines.length - 1;
+                const currentLine = lines[currentLineIdx];
+                currentList = list.filter(v => v.toLowerCase().startsWith(currentLine.trim().toLowerCase()));
+                // Affiche la liste dans la console pour debug
+                console.log('Suggestions:', currentList);
+            });
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab' && currentList.length > 0) {
+                    e.preventDefault();
+                    const pos = textarea.selectionStart;
+                    const value = textarea.value;
+                    const lines = value.substr(0, pos).split(/\r?\n/);
+                    const currentLineIdx = lines.length - 1;
+                    const before = lines.slice(0, currentLineIdx).join('\n');
+                    const after = value.substr(pos);
+                    const completed = currentList[0];
+                    lines[currentLineIdx] = completed;
+                    const newValue = (before ? before + '\n' : '') + lines[currentLineIdx] + after;
+                    textarea.value = newValue;
+                    textarea.selectionStart = textarea.selectionEnd = (before ? before.length + 1 : 0) + completed.length;
+                }
+            });
+        });
+    
+    // Fonction pour ajouter une nouvelle ligne de résultats
+    window.ajouterLigneResultat = function() {
+        const container = document.getElementById('resultats-container');
+        const ligneCount = container.querySelectorAll('.tagify-line').length + 2; // Spot 1 + nouveaux
+        const ligne = document.createElement('div');
+        ligne.classList.add('tagify-line');
+        const label = document.createElement('label');
+        label.className = 'spot-label';
+        label.textContent = 'Résultats ' + ligneCount+ ":";
+        const input = document.createElement('input');
+        input.className = 'resultats-input';
+        input.name = 'resultats[]';
+        input.placeholder = 'MDMA, Caféine';
+        ligne.appendChild(label);
+        ligne.appendChild(input);
+        container.appendChild(ligne);
+        // Tagify sur le nouvel input
+        fetch("{{ url_for('static', filename='produits.json') }}")
+            .then(r => r.json())
+            .then(list => {
+                new Tagify(input, {
+                    whitelist: list,
+                    dropdown: {
+                        enabled: 1,
+                        maxItems: 20,
+                        classname: 'tags-look',
+                        fuzzySearch: true,
+                        highlightFirst: true
+                    }
+                });
+            });
+    }
+    // Tagify sur l'input résultats au chargement
+    if (document.querySelector('.resultats-input')) {
+        fetch("{{ url_for('static', filename='produits.json') }}")
+            .then(r => r.json())
+            .then(list => {
+                document.querySelectorAll('.resultats-input').forEach(input => {
+                    new Tagify(input, {
+                        whitelist: list,
+                        dropdown: {
+                            enabled: 1,
+                            maxItems: 20,
+                            classname: 'tags-look',
+                            fuzzySearch: true,
+                            highlightFirst: true
+                        }
+                    });
+                });
+            });
+    }
+    </script>
+    {% endblock %}
