@@ -381,3 +381,66 @@ function stopRefresh() {
         refreshInterval = null;
     }
 }
+
+// Gestion navigation échantillons
+let databaseData = [];
+let currentSampleIndex = 0;
+
+async function loadDatabase() {
+    const response = await fetch('/get-database');
+    databaseData = await response.json();
+}
+
+window.loadPreviousSample = async function() {
+    if (!databaseData.length) await loadDatabase();
+    await loadDatabase(); // Recharge la base à chaque clic
+    
+    // Si c'est le premier appel, commence par le dernier élément
+    if (currentSampleIndex === 0) {
+        currentSampleIndex = databaseData.length - 1;
+    } else {
+        // Sinon, va à l'élément précédent
+        currentSampleIndex = Math.max(0, currentSampleIndex - 1);
+    }
+    
+    console.log('Index courant:', currentSampleIndex);
+    console.log('Élément sélectionné:', databaseData[currentSampleIndex]);
+    
+    // Remplit l'input echantillons avec les données de l'échantillon sélectionné
+    const entry = databaseData[currentSampleIndex];
+    if (entry && entry.echantillon && entry.echantillon.length > 0) {
+        // Récupère tous les noms d'échantillons et les joint par des virgules
+        const echantillonNames = entry.echantillon.map(e => e.echantillon).join(', ');
+        document.getElementById('echantillons').value = echantillonNames;
+        console.log('Échantillons chargés dans l\'input:', echantillonNames);
+    } else {
+        console.log('Aucun échantillon trouvé dans l\'élément sélectionné');
+    }
+}
+
+window.loadNextSample = async function() {
+    if (!databaseData.length) await loadDatabase();
+    await loadDatabase(); // Recharge la base à chaque clic
+    
+    // Va à l'élément suivant
+    currentSampleIndex = Math.min(databaseData.length - 1, currentSampleIndex + 1);
+    
+    console.log('Index courant:', currentSampleIndex);
+    console.log('Élément sélectionné:', databaseData[currentSampleIndex]);
+    
+    // Remplit l'input echantillons avec les données de l'échantillon sélectionné
+    const entry = databaseData[currentSampleIndex];
+    if (entry && entry.echantillon && entry.echantillon.length > 0) {
+        // Récupère tous les noms d'échantillons et les joint par des virgules
+        const echantillonNames = entry.echantillon.map(e => e.echantillon).join(', ');
+        document.getElementById('echantillons').value = echantillonNames;
+        console.log('Échantillons chargés dans l\'input:', echantillonNames);
+    } else {
+        console.log('Aucun échantillon trouvé dans l\'élément sélectionné');
+    }
+}
+
+window.clearEchantillons = function() {
+    document.getElementById('echantillons').value = '';
+    console.log('Input échantillons effacé');
+}

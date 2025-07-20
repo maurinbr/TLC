@@ -17,5 +17,30 @@
       "depot": 276,
       "front": 490
     }
+  },
+    {
+    "file": "Analyse - 2025-07-17 20_00_40 - Copie (2).jpeg",
+    "exp": [
+      "Opiacé",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "FEST26",
+        "resultats": [
+          "Cocaine"
+        ]
+      },
+            {
+        "echantillon": "FEST27",
+        "resultats": [
+          "Cocaine"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 276,
+      "front": 490
+    }
   }
 ]
