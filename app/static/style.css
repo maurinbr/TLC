@@ -32,6 +32,15 @@
     min-width: 200px;
     text-align: center;
 }
+.notif.success {
+    background: #4caf50;
+}
+.notif.error {
+    background: #f44336;
+}
+.notif.info {
+    background: #2196f3;
+}
 .input-row {
     margin: 18px 0 10px 0;
     display: flex;

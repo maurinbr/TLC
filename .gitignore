@@ -1,6 +1,7 @@
 # Données sensibles à ne pas publier
 app/static/echantillon.json
 app/static/produits.json
+app/static/chimotheque.csv
 app/data/chimotheque.csv
 app/data/database.json
 app/data/journal.json

@@ -1,6 +1,6 @@
 [
   {
-    "file": "Analyse - 2025-07-17 20_00_40 - Copie (2).jpeg",
+    "file": "Analyse - 2025-07-17 20_00_40 (2).jpeg",
     "exp": [
       "Opiacé",
       "UV254"
@@ -16,6 +16,203 @@
     "bornes": {
       "depot": 276,
       "front": 490
+    }
+  },
+  {
+    "file": "Analyse - 2025-07-17 20_00_40 (2).jpeg",
+    "exp": [
+      "Opiacé",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "FEST26",
+        "resultats": [
+          "Cocaine"
+        ]
+      },
+      {
+        "echantillon": "FEST27",
+        "resultats": [
+          "Cocaine"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 276,
+      "front": 490
+    }
+  },
+  {
+    "file": "Analyse - 2025-07-25 18_09_25.jpeg",
+    "exp": [
+      "THC",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "4F-MDMB-BINACA",
+        "resultats": [
+          "4F-MDMB-BINACA"
+        ]
+      },
+      {
+        "echantillon": "5F-ADB-PINACA",
+        "resultats": [
+          "5F-ADB-PINACA"
+        ]
+      },
+      {
+        "echantillon": "CBD",
+        "resultats": [
+          "CBD"
+        ]
+      },
+      {
+        "echantillon": "AG25040",
+        "resultats": [
+          "AG25040"
+        ]
+      },
+      {
+        "echantillon": "RI24004",
+        "resultats": [
+          "RI24004"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 146,
+      "front": 681
+    }
+  },
+  {
+    "file": "Analyse - 2025-07-25 18_10_08.jpeg",
+    "exp": [
+      "THC",
+      "UV365"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "4F-MDMB-BINACA",
+        "resultats": [
+          "4F-MDMB-BINACA"
+        ]
+      },
+      {
+        "echantillon": "5F-ADB-PINACA",
+        "resultats": [
+          "5F-ADB-PINACA"
+        ]
+      },
+      {
+        "echantillon": "CBD",
+        "resultats": [
+          "CBD"
+        ]
+      },
+      {
+        "echantillon": "AG25040",
+        "resultats": [
+          "AG25040"
+        ]
+      },
+      {
+        "echantillon": "RI24004",
+        "resultats": [
+          "RI24004"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 148,
+      "front": 675
+    }
+  },
+  {
+    "file": "Analyse - 2025-07-25 18_25_18.jpeg",
+    "exp": [
+      "THC",
+      "UV254"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "4F-MDMB-BINACA",
+        "resultats": [
+          "4F-MDMB-BINACA"
+        ]
+      },
+      {
+        "echantillon": "5F-ADB-PINACA",
+        "resultats": [
+          "5F-ADB-PINACA"
+        ]
+      },
+      {
+        "echantillon": "CBD",
+        "resultats": [
+          "CBD"
+        ]
+      },
+      {
+        "echantillon": "AG25040",
+        "resultats": [
+          "AG25040"
+        ]
+      },
+      {
+        "echantillon": "RI24004",
+        "resultats": [
+          "RI24004"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 122,
+      "front": 671
+    }
+  },
+  {
+    "file": "Analyse - 2025-07-25 18_58_00.jpeg",
+    "exp": [
+      "THC",
+      "Marquis"
+    ],
+    "echantillon": [
+      {
+        "echantillon": "RI24004",
+        "resultats": [
+          "RI24004"
+        ]
+      },
+      {
+        "echantillon": "RI24006",
+        "resultats": [
+          "RI24006"
+        ]
+      },
+      {
+        "echantillon": "RI24007",
+        "resultats": [
+          "RI24007"
+        ]
+      },
+      {
+        "echantillon": "RI24008",
+        "resultats": [
+          "RI24008"
+        ]
+      },
+      {
+        "echantillon": "AG25040",
+        "resultats": [
+          "AG25040"
+        ]
+      }
+    ],
+    "bornes": {
+      "depot": 49,
+      "front": 704
     }
   }
 ]

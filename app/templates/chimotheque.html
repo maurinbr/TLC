@@ -132,8 +132,61 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger" onclick="clearSample()" id="clearBtn">Vider</button>
+                            <button type="button" class="btn btn-warning" onclick="showMoveModal()" id="moveBtn">
+                                <i class="fas fa-arrows-alt"></i> Déplacer
+                            </button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                             <button type="button" class="btn btn-primary" onclick="saveSample()">Sauvegarder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal pour déplacer un échantillon -->
+            <div class="modal fade" id="moveModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Déplacer l'échantillon</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <p><strong>Échantillon actuel :</strong> <span id="currentSampleInfo"></span></p>
+                                <p><strong>Position actuelle :</strong> <span id="currentPositionInfo"></span></p>
+                            </div>
+                            
+                            <form id="moveForm">
+                                <div class="mb-3">
+                                    <label for="targetBox" class="form-label">Boîte de destination</label>
+                                    <select id="targetBox" class="form-select">
+                                        <option value="">-- Choisir une boîte --</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="targetPosition" class="form-label">Position de destination</label>
+                                    <select id="targetPosition" class="form-select" disabled>
+                                        <option value="">-- Choisir d'abord une boîte --</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="duplicateMode">
+                                        <label class="form-check-label" for="duplicateMode">
+                                            <strong>Dupliquer</strong> (créer une copie au lieu de déplacer)
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Si coché, l'échantillon original restera à sa position actuelle</small>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="button" class="btn btn-primary" onclick="executeMoveOrDuplicate()" id="executeBtn" disabled>
+                                <span id="executeBtnText">Déplacer</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -415,13 +468,51 @@ function openSampleModal(position) {
     document.getElementById('sampleNotes').value = sampleData?.notes || '';
     document.getElementById('sampleModalTitle').textContent = `Échantillon ${position}`;
     document.getElementById('clearBtn').style.display = sampleData?.contenu ? 'inline-block' : 'none';
+    document.getElementById('moveBtn').style.display = sampleData?.contenu ? 'inline-block' : 'none';
+    
+    // Empêcher la soumission du formulaire avec Entrée
+    const form = document.getElementById('sampleForm');
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        return false;
+    };
+    
+    // Gérer la touche Entrée sur les champs
+    const inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.onkeydown = function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Si c'est le dernier champ (textarea), sauvegarder
+                if (this === document.getElementById('sampleNotes')) {
+                    saveSample();
+                } else {
+                    // Sinon, passer au champ suivant
+                    const nextInput = Array.from(inputs).find(inp => 
+                        inp.tabIndex > this.tabIndex || 
+                        (inp.tabIndex === 0 && this.tabIndex === 0 && Array.from(inputs).indexOf(inp) > Array.from(inputs).indexOf(this))
+                    );
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            }
+        };
+    });
+    
     // Toujours ouvrir la modale, même si la case est vide
     let modal = bootstrap.Modal.getInstance(document.getElementById('sampleModal'));
     if (!modal) {
         modal = new bootstrap.Modal(document.getElementById('sampleModal'));
     }
+    
+    // Écouter l'événement d'ouverture complète de la modale pour mettre le focus
+    const modalElement = document.getElementById('sampleModal');
+    modalElement.addEventListener('shown.bs.modal', function() {
+        document.getElementById('sampleContent').focus();
+    }, { once: true }); // once: true pour que l'événement ne s'exécute qu'une fois
+    
     modal.show();
-    document.getElementById('sampleContent').focus();
 }
 
 async function saveSample() {
@@ -524,7 +615,46 @@ async function clearSample() {
 
 function showNewBoxModal() {
     document.getElementById('newBoxForm').reset();
-    new bootstrap.Modal(document.getElementById('newBoxModal')).show();
+    
+    // Empêcher la soumission du formulaire avec Entrée
+    const form = document.getElementById('newBoxForm');
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        return false;
+    };
+    
+    // Gérer la touche Entrée sur les champs
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.onkeydown = function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Si c'est le dernier champ, créer la boîte
+                if (this === document.getElementById('newBoxLoc')) {
+                    createNewBox();
+                } else {
+                    // Sinon, passer au champ suivant
+                    const nextInput = Array.from(inputs).find(inp => 
+                        inp.tabIndex > this.tabIndex || 
+                        (inp.tabIndex === 0 && this.tabIndex === 0 && Array.from(inputs).indexOf(inp) > Array.from(inputs).indexOf(this))
+                    );
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            }
+        };
+    });
+    
+    const modal = new bootstrap.Modal(document.getElementById('newBoxModal'));
+    
+    // Écouter l'événement d'ouverture complète de la modale pour mettre le focus
+    const modalElement = document.getElementById('newBoxModal');
+    modalElement.addEventListener('shown.bs.modal', function() {
+        document.getElementById('newBoiteID').focus();
+    }, { once: true }); // once: true pour que l'événement ne s'exécute qu'une fois
+    
+    modal.show();
 }
 
 async function createNewBox() {
@@ -701,6 +831,179 @@ function showAlert(message, type) {
             alertDiv.parentNode.removeChild(alertDiv);
         }
     }, 3000);
+}
+
+function showMoveModal() {
+    const sampleData = currentBoxData.find(item => item.echantillon === selectedPosition);
+    if (!sampleData) return;
+    
+    // Remplir les informations de l'échantillon actuel
+    document.getElementById('currentSampleInfo').textContent = sampleData.contenu;
+    document.getElementById('currentPositionInfo').textContent = `${currentBox} - ${selectedPosition}`;
+    
+    // Remplir la liste des boîtes
+    populateTargetBoxes();
+    
+    // Réinitialiser le formulaire
+    document.getElementById('targetBox').value = '';
+    document.getElementById('targetPosition').value = '';
+    document.getElementById('targetPosition').disabled = true;
+    document.getElementById('duplicateMode').checked = false;
+    document.getElementById('executeBtn').disabled = true;
+    document.getElementById('executeBtnText').textContent = 'Déplacer';
+    
+    // Écouter les changements sur la checkbox pour changer le texte du bouton
+    document.getElementById('duplicateMode').addEventListener('change', function() {
+        document.getElementById('executeBtnText').textContent = this.checked ? 'Dupliquer' : 'Déplacer';
+    });
+    
+    // Écouter les changements sur la boîte cible
+    document.getElementById('targetBox').addEventListener('change', function() {
+        populateTargetPositions(this.value);
+    });
+    
+    // Écouter les changements sur la position cible
+    document.getElementById('targetPosition').addEventListener('change', function() {
+        document.getElementById('executeBtn').disabled = !this.value;
+    });
+    
+    // Ouvrir la modale
+    new bootstrap.Modal(document.getElementById('moveModal')).show();
+}
+
+function populateTargetBoxes() {
+    const select = document.getElementById('targetBox');
+    const boxes = [...new Set(chimothequeData.map(item => item.boiteID))];
+    
+    select.innerHTML = '<option value="">-- Choisir une boîte --</option>';
+    boxes.forEach(boxId => {
+        const boxData = chimothequeData.find(item => item.boiteID === boxId);
+        select.innerHTML += `<option value="${boxId}">${boxId} - ${boxData.nom}</option>`;
+    });
+}
+
+function populateTargetPositions(targetBoxId) {
+    const select = document.getElementById('targetPosition');
+    
+    if (!targetBoxId) {
+        select.innerHTML = '<option value="">-- Choisir d\'abord une boîte --</option>';
+        select.disabled = true;
+        document.getElementById('executeBtn').disabled = true;
+        return;
+    }
+    
+    select.disabled = false;
+    select.innerHTML = '<option value="">-- Choisir une position --</option>';
+    
+    // Générer toutes les positions possibles
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    const targetBoxData = chimothequeData.filter(item => item.boiteID === targetBoxId);
+    
+    rows.forEach(row => {
+        for (let col = 1; col <= 10; col++) {
+            const position = `${row}${col}`;
+            const isOccupied = targetBoxData.some(item => item.echantillon === position && item.contenu);
+            const isSamePosition = targetBoxId === currentBox && position === selectedPosition;
+            
+            if (!isOccupied || isSamePosition) {
+                const option = document.createElement('option');
+                option.value = position;
+                option.textContent = position;
+                if (isSamePosition) {
+                    option.textContent += ' (position actuelle)';
+                    option.disabled = true;
+                }
+                select.appendChild(option);
+            }
+        }
+    });
+}
+
+async function executeMoveOrDuplicate() {
+    const targetBoxId = document.getElementById('targetBox').value;
+    const targetPosition = document.getElementById('targetPosition').value;
+    const isDuplicate = document.getElementById('duplicateMode').checked;
+    
+    if (!targetBoxId || !targetPosition) {
+        showAlert('Veuillez sélectionner une boîte et une position de destination', 'error');
+        return;
+    }
+    
+    // Vérifier si la position de destination est occupée
+    const targetExists = chimothequeData.some(item => 
+        item.boiteID === targetBoxId && 
+        item.echantillon === targetPosition && 
+        item.contenu &&
+        !(targetBoxId === currentBox && targetPosition === selectedPosition)
+    );
+    
+    if (targetExists) {
+        showAlert('La position de destination est déjà occupée', 'error');
+        return;
+    }
+    
+    const sampleData = currentBoxData.find(item => item.echantillon === selectedPosition);
+    const targetBoxData = chimothequeData.find(item => item.boiteID === targetBoxId);
+    
+    // Créer la nouvelle entrée
+    const newSampleData = {
+        boiteID: targetBoxId,
+        nom: targetBoxData.nom,
+        loc: targetBoxData.loc,
+        echantillon: targetPosition,
+        contenu: sampleData.contenu,
+        notes: sampleData.notes
+    };
+    
+    // Ajouter à la position cible
+    const targetIndex = chimothequeData.findIndex(item => 
+        item.boiteID === targetBoxId && item.echantillon === targetPosition
+    );
+    
+    if (targetIndex >= 0) {
+        chimothequeData[targetIndex] = newSampleData;
+    } else {
+        chimothequeData.push(newSampleData);
+    }
+    
+    // Si ce n'est pas une duplication, supprimer l'original
+    if (!isDuplicate) {
+        chimothequeData = chimothequeData.filter(item => 
+            !(item.boiteID === currentBox && item.echantillon === selectedPosition)
+        );
+        currentBoxData = currentBoxData.filter(item => item.echantillon !== selectedPosition);
+    }
+    
+    // Sauvegarder les données
+    await saveChimothequeData();
+    
+    // Recharger les données si nécessaire
+    if (targetBoxId !== currentBox) {
+        await loadChimothequeData();
+    } else {
+        currentBoxData = chimothequeData.filter(item => item.boiteID === currentBox);
+    }
+    
+    // Régénérer la grille
+    generateGrid();
+    
+    // Fermer les modales
+    bootstrap.Modal.getInstance(document.getElementById('moveModal')).hide();
+    bootstrap.Modal.getInstance(document.getElementById('sampleModal')).hide();
+    
+    // Afficher le message de succès
+    const action = isDuplicate ? 'dupliqué' : 'déplacé';
+    showAlert(`Échantillon ${action} avec succès vers ${targetBoxId} - ${targetPosition}`, 'success');
+    
+    // Si l'échantillon a été déplacé vers une autre boîte, proposer d'y aller
+    if (targetBoxId !== currentBox && !isDuplicate) {
+        setTimeout(() => {
+            if (confirm(`Voulez-vous aller à la boîte ${targetBoxId} pour voir l'échantillon déplacé ?`)) {
+                document.getElementById('boiteSelect').value = targetBoxId;
+                loadBox(targetBoxId);
+            }
+        }, 500);
+    }
 }
 </script>
 {% endblock %}

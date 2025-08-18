@@ -8,7 +8,8 @@ import os
 import json
 import glob
 import csv
-import pandas as pd 
+import pandas as pd
+from werkzeug.utils import secure_filename 
 
 # Purge le dossier static/images au démarrage
 print("Purge du dossier static/images...")
@@ -48,6 +49,37 @@ def image_process():
     out_path = os.path.join(os.path.dirname(__file__), 'static', 'images', 'negatif_' + last_img)
     cv2.imwrite(out_path, neg)
     return send_file(out_path, mimetype='image/jpeg')
+
+# Route pour l'upload d'images
+@app.route('/upload-image', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Aucun fichier fourni'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'Aucun fichier sélectionné'}), 400
+    
+    if file:
+        # Sécuriser le nom de fichier
+        filename = secure_filename(file.filename)
+        
+        # Sauvegarder dans le dossier static/images
+        STATIC_IMG_DIR = os.path.join(os.path.dirname(__file__), 'static', 'images')
+        os.makedirs(STATIC_IMG_DIR, exist_ok=True)
+        file_path = os.path.join(STATIC_IMG_DIR, filename)
+        file.save(file_path)
+        
+        # Ajouter à la liste des images détectées
+        images_detected.append(filename)
+        
+        return jsonify({
+            'success': True, 
+            'filename': filename,
+            'message': f'Image {filename} uploadée avec succès'
+        })
+    
+    return jsonify({'error': 'Erreur lors de l\'upload'}), 500
 
 # Fichier de config pour le chemin surveillé
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'data', 'config.json')
@@ -258,3 +290,27 @@ def save_chimotheque():
         return jsonify({'ok': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# Route pour servir une image depuis OneDrive
+@app.route('/onedrive-image')
+def onedrive_image():
+    import os
+    from flask import send_file, request, abort
+    rel_path = request.args.get('path')
+    if not rel_path:
+        abort(400, 'Paramètre path manquant')
+    base_dirs = [
+        os.path.expanduser(r'C:/Users/b.maurin/OneDrive/Analyses'),
+        os.path.expanduser(r'C:/Users/b.maurin/OneDrive/Analyses/2025'),
+        os.path.expanduser(r'C:/Users/b.maurin/OneDrive/Analyses/2024'),
+    ]
+    # TODO à sécuriser
+    found_path = None
+    for base in base_dirs:
+        candidate = os.path.join(base, rel_path)
+        if os.path.isfile(candidate):
+            found_path = candidate
+            break
+    if not found_path:
+        abort(404, 'Image non trouvée')
+    return send_file(found_path)
