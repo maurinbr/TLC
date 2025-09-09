@@ -27,6 +27,9 @@
                             <button class="btn btn-info" onclick="showBoxInfoModal()" id="infoBoxBtn" disabled>
                                 <i class="fas fa-info-circle"></i> Info Boîte
                             </button>
+                            <button class="btn btn-warning" onclick="exportChimotheque()">
+                                <i class="fas fa-download"></i> Exporter
+                            </button>
                         </div>
                         <div class="col-md-4">
                             <div id="boiteInfo" class="text-muted">
@@ -1003,6 +1006,41 @@ async function executeMoveOrDuplicate() {
                 loadBox(targetBoxId);
             }
         }, 500);
+    }
+}
+
+// Fonction d'export de la chimithèque
+async function exportChimotheque() {
+    try {
+        showAlert('Préparation de l\'export...', 'info');
+        
+        // Récupérer les données depuis le serveur
+        const response = await fetch('/export-chimotheque');
+        
+        if (!response.ok) {
+            throw new Error('Erreur lors de l\'export');
+        }
+        
+        // Créer un blob avec le contenu CSV
+        const blob = await response.blob();
+        
+        // Créer un lien de téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chimotheque_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Nettoyer
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showAlert('Export téléchargé avec succès', 'success');
+        
+    } catch (error) {
+        console.error('Erreur lors de l\'export:', error);
+        showAlert('Erreur lors de l\'export', 'error');
     }
 }
 </script>

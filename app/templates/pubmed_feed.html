@@ -1,0 +1,807 @@
+{% extends "base.html" %}
+
+{% block title %}PubMed Feed - TLC{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-rss"></i> PubMed Feed - Gestion des Articles
+            </h2>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Colonne gauche : Sets de recherche -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-folder"></i> Sets de Recherche
+                    </h5>
+              }, 5000);
+}
+
+function generateStars(rating) {
+    const normalizedRating = Math.max(0, Math.min(1, rating)); // Assurer que c'est entre 0 et 1
+    const stars = [];
+    
+    for (let i = 1; i <= 5; i++) {
+        const threshold = i / 5; // 0.2, 0.4, 0.6, 0.8, 1.0
+        const filled = normalizedRating >= threshold;
+        stars.push(`<i class="fas fa-star rating-star ${filled ? 'filled' : ''}" data-rating="${threshold}" onclick="setRating(event, ${threshold})"></i>`);
+    }
+    
+    return stars.join('');
+}
+
+async function setRating(event, rating) {
+    event.stopPropagation();
+    
+    const starElement = event.target;
+    const starsContainer = starElement.closest('.rating-stars');
+    const pmid = starsContainer.dataset.pmid;
+    const setId = starsContainer.dataset.setId;
+    
+    if (!setId || setId === 'unknown' || !pmid) {
+        console.error('Données manquantes pour la notation:', {setId, pmid});
+        showAlert('Erreur: données article manquantes', 'error');
+        return;
+    }
+    
+    try {
+        console.log('Setting rating:', {setId, pmid, rating});
+        
+        const response = await fetch('/rate-article', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                set_id: setId,
+                pmid: pmid,
+                rating: rating
+            })
+        });
+        
+        console.log('Rating response status:', response.status, response.ok);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Rating result:', result);
+        
+        if (result.success) {
+            console.log('Rating réussi, rechargement des données...');
+            
+            // Recharger les données pour avoir les notes à jour
+            await loadPubMedSets();
+            
+            showAlert(
+                `Note attribuée: ${result.rating.toFixed(1)} (${result.updated_count || 1} articles mis à jour)`, 
+                'success'
+            );
+        } else {
+            console.error('Server error:', result.error);
+            showAlert(result.error || 'Erreur lors de la notation', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        showAlert(`Erreur lors de la notation: ${error.message}`, 'error');
+    }
+}        <button class="btn btn-primary btn-sm" onclick="showAddSetModal()">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="setsContainer">
+                        <!-- Sets générés dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Colonne droite : Feed des articles -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" id="feedTitle">
+                        <i class="fas fa-newspaper"></i> Feed - Tous les articles
+                    </h5>
+                    <div>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="showAllFeed()">
+                            <i class="fas fa-list"></i> Tous
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="toggleReadFilter()">
+                            <i class="fas fa-filter"></i> <span id="filterText">Filtrer lus</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Rechercher dans les titres ou auteurs...">
+                            </div>
+                            <div class="col-md-4">
+                                <span id="articlesCount" class="text-muted">0 articles</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="feedContainer" style="max-height: 600px; overflow-y: auto;">
+                        <!-- Articles générés dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour ajouter un nouveau set -->
+<div class="modal fade" id="addSetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un nouveau set</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSetForm">
+                    <div class="mb-3">
+                        <label for="setName" class="form-label">Nom du set <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="setName" required placeholder="ex: New Psychoactive Substances 2024">
+                    </div>
+                    <div class="mb-3">
+                        <label for="setDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="setDescription" rows="2" placeholder="Description optionnelle de la recherche"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">Fichier CSV <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="csvFile" accept=".csv" required>
+                        <div class="form-text">Format attendu : PMID, Title, Authors, PMCID, etc.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="addNewSet()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour voir un article -->
+<div class="modal fade" id="articleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="articleModalTitle">Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="articleContent">
+                    <!-- Contenu de l'article -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                <a href="#" target="_blank" class="btn btn-primary" id="openPubMedBtn">
+                    <i class="fas fa-external-link-alt"></i> Ouvrir dans PubMed
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.set-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.set-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.2);
+}
+
+.set-card.active {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+.set-card h6 {
+    margin-bottom: 4px;
+    color: #333;
+}
+
+.set-card .set-stats {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.article-item {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.article-item:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.article-item.read {
+    background-color: #f8f9fa;
+    opacity: 0.7;
+}
+
+.article-item .article-title {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.article-item .article-meta {
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.article-item .article-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.read-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+.read-badge.read {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.read-badge.unread {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.article-set-badge {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7em;
+    margin-left: 8px;
+}
+
+.search-highlight {
+    background-color: yellow;
+    font-weight: bold;
+}
+
+.rating-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 2px;
+}
+
+.rating-star {
+    font-size: 14px;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.rating-star.filled {
+    color: #ffd700;
+}
+
+.rating-star:hover {
+    color: #ffd700;
+}
+
+.rating-value {
+    font-size: 0.8em;
+    color: #666;
+    margin-left: 5px;
+    min-width: 30px;
+}
+
+.article-item:hover .rating-container {
+    opacity: 1;
+}
+
+.rating-container {
+    opacity: 0.7;
+}
+</style>
+
+<script>
+let pubmedSets = [];
+let allArticles = [];
+let currentSetId = null;
+let filterRead = false;
+let searchTerm = '';
+
+// Charger les données au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, starting data load...');
+    loadPubMedSets();
+    setupSearchListener();
+});
+
+function setupSearchListener() {
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchTerm = this.value.trim();
+            renderFeed();
+        }, 300);
+    });
+}
+
+async function loadPubMedSets() {
+    try {
+        console.log('Chargement des sets PubMed...');
+        const response = await fetch('/get-pubmed-sets');
+        console.log('Réponse reçue:', response.status, response.ok);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Essayer directement de parser comme JSON
+        const data = await response.json();
+        console.log('Données JSON reçues avec succès');
+        
+        pubmedSets = data.sets || [];
+        allArticles = data.articles || [];
+        
+        console.log('Sets chargés:', pubmedSets.length);
+        console.log('Articles chargés:', allArticles.length);
+        
+        renderSets();
+        renderFeed();
+    } catch (error) {
+        console.error('Erreur détaillée lors du chargement des sets:', error);
+        showAlert(`🔍 NOUVEAU DEBUG - Erreur lors du chargement des données: ${error.message}`, 'error');
+    }
+}
+
+function renderSets() {
+    const container = document.getElementById('setsContainer');
+    
+    if (pubmedSets.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-folder-open fa-2x mb-2"></i>
+                <p>Aucun set de recherche</p>
+                <button class="btn btn-outline-primary btn-sm" onclick="showAddSetModal()">
+                    Ajouter le premier set
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = pubmedSets.map(set => {
+        const readCount = set.articles.filter(article => 
+            article.Read === 'true'
+        ).length;
+        const totalCount = set.articles.length;
+        
+        return `
+            <div class="set-card ${currentSetId === set.id ? 'active' : ''}" 
+                 onclick="selectSet('${set.id}')">
+                <h6>${set.name}</h6>
+                <div class="set-stats">
+                    <i class="fas fa-file-alt"></i> ${totalCount} articles
+                    <br>
+                    <i class="fas fa-check-circle text-success"></i> ${readCount} lus
+                    <i class="fas fa-clock text-warning"></i> ${totalCount - readCount} non lus
+                </div>
+                ${set.description ? `<small class="text-muted d-block mt-1">${set.description}</small>` : ''}
+                <div class="mt-2">
+                    <button class="btn btn-outline-danger btn-sm" onclick="deleteSet('${set.id}', event)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectSet(setId) {
+    currentSetId = setId;
+    renderSets();
+    renderFeed();
+    
+    const set = pubmedSets.find(s => s.id === setId);
+    document.getElementById('feedTitle').innerHTML = `
+        <i class="fas fa-newspaper"></i> Feed - ${set.name}
+    `;
+}
+
+function showAllFeed() {
+    currentSetId = null;
+    renderSets();
+    renderFeed();
+    document.getElementById('feedTitle').innerHTML = `
+        <i class="fas fa-newspaper"></i> Feed - Tous les articles
+    `;
+}
+
+function renderFeed() {
+    const container = document.getElementById('feedContainer');
+    
+    // Filtrer les articles selon le set sélectionné
+    let articles = currentSetId ? 
+        pubmedSets.find(s => s.id === currentSetId)?.articles || [] : 
+        allArticles;
+    
+    // Filtrer les doublons par DOI quand on affiche tous les sets
+    if (!currentSetId) {
+        const seenDOIs = new Set();
+        articles = articles.filter(article => {
+            const doi = article.DOI;
+            if (!doi || doi === '' || doi === null) {
+                // Si pas de DOI, on garde l'article (mais on pourrait avoir des doublons)
+                return true;
+            }
+            if (seenDOIs.has(doi)) {
+                return false; // Doublon, on l'ignore
+            }
+            seenDOIs.add(doi);
+            return true;
+        });
+        console.log(`Filtrage doublons: ${allArticles.length} -> ${articles.length} articles`);
+    }
+    
+    // Filtrer par recherche
+    if (searchTerm) {
+        articles = articles.filter(article => 
+            article.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            article.Authors.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            article['First Author'].toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+    
+    // Filtrer par statut de lecture
+    if (filterRead) {
+        articles = articles.filter(article => 
+            article.Read !== 'true'
+        );
+    }
+    
+    // Trier par année (plus récent en premier)
+    articles.sort((a, b) => {
+        const yearA = parseInt(a['Publication Year']) || 0;
+        const yearB = parseInt(b['Publication Year']) || 0;
+        return yearB - yearA;
+    });
+    
+    document.getElementById('articlesCount').textContent = `${articles.length} article(s)`;
+    
+    if (articles.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-search fa-2x mb-2"></i>
+                <p>Aucun article trouvé</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = articles.map(article => {
+        const isRead = article.Read === 'true';
+        const highlightedTitle = highlightText(article.Title, searchTerm);
+        
+        // Trouver le set d'origine pour l'affichage
+        const originSet = pubmedSets.find(set => 
+            set.articles.some(a => a.PMID === article.PMID)
+        );
+        
+        return `
+            <div class="article-item ${isRead ? 'read' : ''}" 
+                 data-set-id="${originSet?.id || 'unknown'}"
+                 data-pmid="${article.PMID}"
+                 onclick="showArticleModal('${article.PMID}')">
+                <div class="article-title">${highlightedTitle}</div>
+                <div class="article-meta">
+                    <i class="fas fa-user"></i> ${article['First Author']} et al. 
+                    | <i class="fas fa-calendar"></i> ${article['Publication Year']}
+                    | <i class="fas fa-book"></i> ${article['Journal/Book']}
+                    ${originSet && !currentSetId ? `<span class="article-set-badge">${originSet.name}</span>` : ''}
+                </div>
+                <div class="article-actions">
+                    <div class="d-flex align-items-center">
+                        <span class="read-badge ${isRead ? 'read' : 'unread'}">
+                            ${isRead ? 'Lu' : 'Non lu'}
+                        </span>
+                        <div class="rating-container">
+                            <span class="rating-stars" data-pmid="${article.PMID}" data-set-id="${originSet?.id}">
+                                ${generateStars(article.Rating || 0)}
+                            </span>
+                            <span class="rating-value">${(article.Rating || 0).toFixed(1)}</span>
+                        </div>
+                        ${article.PMCID ? `<small class="text-muted ms-2">PMCID: ${article.PMCID}</small>` : ''}
+                    </div>
+                    <div>
+                        <button class="btn btn-sm ${isRead ? 'btn-outline-warning' : 'btn-outline-success'}" 
+                                onclick="toggleReadStatusFromButton(this, event)">
+                            <i class="fas fa-${isRead ? 'eye-slash' : 'check'}"></i>
+                            ${isRead ? 'Marquer non lu' : 'Marquer lu'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function highlightText(text, searchTerm) {
+    if (!searchTerm) return text;
+    
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '<span class="search-highlight">$1</span>');
+}
+
+async function toggleReadStatusFromButton(button, event) {
+    event.stopPropagation();
+    
+    // Récupérer les données de l'article parent
+    const articleElement = button.closest('.article-item');
+    const setId = articleElement.dataset.setId;
+    const pmid = articleElement.dataset.pmid;
+    
+    console.log('Toggle from button - setId:', setId, 'pmid:', pmid);
+    
+    if (!setId || setId === 'unknown' || !pmid) {
+        console.error('Données manquantes:', {setId, pmid});
+        showAlert('Erreur: données article manquantes', 'error');
+        return;
+    }
+    
+    await toggleReadStatus(setId, pmid, event);
+}
+
+async function toggleReadStatus(setId, pmid, event) {
+    event.stopPropagation();
+    
+    try {
+        console.log('Toggle read status:', {setId, pmid});
+        
+        const response = await fetch('/toggle-article-read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                set_id: setId,
+                pmid: pmid
+            })
+        });
+        
+        console.log('Response status:', response.status, response.ok);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('HTTP Error:', response.status, errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Toggle result:', result);
+        
+        if (result.success) {
+            console.log('Toggle réussi, rechargement des données...');
+            
+            // Recharger les données pour avoir les statuts à jour
+            await loadPubMedSets();
+            
+            console.log('Données rechargées, re-render du feed...');
+            console.log('Nombre d\'articles total:', allArticles.length);
+            
+            // Trouver l'article modifié pour vérifier son statut
+            const modifiedArticle = allArticles.find(a => a.PMID == pmid);
+            console.log('Article modifié:', modifiedArticle ? {
+                PMID: modifiedArticle.PMID,
+                Read: modifiedArticle.Read,
+                Title: modifiedArticle.Title.substring(0, 50) + '...'
+            } : 'NON TROUVÉ');
+            
+            showAlert(
+                result.read ? 
+                `Article marqué comme lu (${result.updated_count || 1} articles mis à jour)` : 
+                `Article marqué comme non lu (${result.updated_count || 1} articles mis à jour)`, 
+                'success'
+            );
+        } else {
+            console.error('Server error:', result.error);
+            showAlert(result.error || 'Erreur lors de la mise à jour', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        showAlert(`Erreur lors de la mise à jour: ${error.message}`, 'error');
+    }
+}
+
+function toggleReadFilter() {
+    filterRead = !filterRead;
+    document.getElementById('filterText').textContent = 
+        filterRead ? 'Montrer tous' : 'Filtrer lus';
+    renderFeed();
+}
+
+function showArticleModal(pmid) {
+    const article = allArticles.find(a => a.PMID === pmid);
+    if (!article) return;
+    
+    document.getElementById('articleModalTitle').textContent = 'Article Details';
+    
+    const pmcUrl = article.PMCID ? 
+        `https://pmc.ncbi.nlm.nih.gov/articles/${article.PMCID}` : 
+        `https://pubmed.ncbi.nlm.nih.gov/${article.PMID}`;
+    
+    document.getElementById('openPubMedBtn').href = pmcUrl;
+    
+    document.getElementById('articleContent').innerHTML = `
+        <div class="row">
+            <div class="col-12">
+                <h5>${article.Title}</h5>
+                <hr>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-3"><strong>Auteurs:</strong></div>
+            <div class="col-sm-9">${article.Authors}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-3"><strong>Journal:</strong></div>
+            <div class="col-sm-9">${article['Journal/Book']}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-3"><strong>Année:</strong></div>
+            <div class="col-sm-9">${article['Publication Year']}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-3"><strong>Citation:</strong></div>
+            <div class="col-sm-9">${article.Citation}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-3"><strong>PMID:</strong></div>
+            <div class="col-sm-9">${article.PMID}</div>
+        </div>
+        ${article.PMCID ? `
+        <div class="row mb-3">
+            <div class="col-sm-3"><strong>PMCID:</strong></div>
+            <div class="col-sm-9">${article.PMCID}</div>
+        </div>
+        ` : ''}
+        ${article.DOI ? `
+        <div class="row mb-3">
+            <div class="col-sm-3"><strong>DOI:</strong></div>
+            <div class="col-sm-9">${article.DOI}</div>
+        </div>
+        ` : ''}
+    `;
+    
+    new bootstrap.Modal(document.getElementById('articleModal')).show();
+}
+
+function showAddSetModal() {
+    document.getElementById('addSetForm').reset();
+    new bootstrap.Modal(document.getElementById('addSetModal')).show();
+}
+
+async function addNewSet() {
+    const setName = document.getElementById('setName').value.trim();
+    const setDescription = document.getElementById('setDescription').value.trim();
+    const csvFile = document.getElementById('csvFile').files[0];
+    
+    if (!setName || !csvFile) {
+        showAlert('Nom et fichier CSV requis', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('name', setName);
+    formData.append('description', setDescription);
+    formData.append('csvFile', csvFile);
+    
+    try {
+        const response = await fetch('/add-pubmed-set', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('addSetModal')).hide();
+            showAlert('Set ajouté avec succès', 'success');
+            loadPubMedSets();
+        } else {
+            showAlert(result.error || 'Erreur lors de l\'ajout du set', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showAlert('Erreur lors de l\'ajout du set', 'error');
+    }
+}
+
+async function deleteSet(setId, event) {
+    event.stopPropagation();
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce set ?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/delete-pubmed-set/${setId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('Set supprimé avec succès', 'success');
+            if (currentSetId === setId) {
+                showAllFeed();
+            }
+            loadPubMedSets();
+        } else {
+            showAlert(result.error || 'Erreur lors de la suppression', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        showAlert('Erreur lors de la suppression', 'error');
+    }
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

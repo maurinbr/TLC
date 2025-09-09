@@ -1,0 +1,23 @@
+[
+  {
+    "id": "5e53148b-38fc-4637-bf3a-e36dabd6ec37",
+    "name": "Cathinones",
+    "description": "",
+    "filename": "csv-cathinones-set_b3ea7221_ebd2376e_2433741e_a17762be.csv",
+    "created_date": "2025-09-02T16:04:16.110951"
+  },
+  {
+    "id": "155b7ab5-2637-4d2b-ad4c-d4ba6c592d79",
+    "name": "NPS",
+    "description": "",
+    "filename": "csv-newpsychoa-set_fceedcbd.csv",
+    "created_date": "2025-09-02T16:15:11.291247"
+  },
+  {
+    "id": "8fecfb9f-a6e0-46ad-a944-af64325405e9",
+    "name": "Arylcyclohexylamine",
+    "description": "",
+    "filename": "csv-Arylcycloh-set_94826ae5.csv",
+    "created_date": "2025-09-02T16:29:18.054605"
+  }
+]

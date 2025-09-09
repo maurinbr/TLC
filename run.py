@@ -1,6 +1,7 @@
 import os
 import shutil
 from app import app
+from app.utils.paths import get_tlc_data_path
 
 
 def sync_config_files():
@@ -8,8 +9,8 @@ def sync_config_files():
     Synchronise les fichiers de configuration depuis le dossier local
     vers l'application actuelle au démarrage.
     """
-    # Dossier source (local)
-    source_dir = r"C:/Users/b.maurin/OneDrive/Analyses/Apps/TLC/TLC/app/data"
+    # Dossier source (local) - utilise la fonction factorisée
+    source_dir = get_tlc_data_path()
     
     # Dossier destination (application actuelle)
     dest_dir = os.path.join(os.path.dirname(__file__), "app", "data")
@@ -49,4 +50,5 @@ if __name__ == '__main__':
     print("Synchronisation des fichiers de configuration...")
     sync_config_files()
     print("Démarrage de l'application Flask...")
-    app.run(debug=True)
+    # host='0.0.0.0' permet l'accès depuis d'autres machines du réseau
+    app.run(debug=True, host='0.0.0.0', port=5000)
