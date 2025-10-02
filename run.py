@@ -50,5 +50,18 @@ if __name__ == '__main__':
     print("Synchronisation des fichiers de configuration...")
     sync_config_files()
     print("Démarrage de l'application Flask...")
-    # host='0.0.0.0' permet l'accès depuis d'autres machines du réseau
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    
+    # Configuration pour accès en ligne
+    # host='0.0.0.0' permet l'accès depuis d'autres machines
+    # port=5000 (ou un autre port de votre choix)
+    # debug=False en production pour la sécurité
+    
+    import sys
+    is_production = '--production' in sys.argv
+    
+    if is_production:
+        print("🌐 Mode PRODUCTION - Serveur accessible en ligne")
+        app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)
+    else:
+        print("🔧 Mode DÉVELOPPEMENT - Serveur local")
+        app.run(debug=True, host='0.0.0.0', port=5000)

@@ -19,7 +19,7 @@ def get_onedrive_base_path():
 def get_tlc_data_path():
     """Retourne le chemin vers les données TLC dans OneDrive pour l'utilisateur actuel."""
     username = get_current_username()
-    return rf"C:/Users/{username}/OneDrive/Analyses/Apps/TLC/TLC/app/data"
+    return rf"C:/Users/{username}/OneDrive/Analyses/Apps"
 
 
 def get_onedrive_search_paths():

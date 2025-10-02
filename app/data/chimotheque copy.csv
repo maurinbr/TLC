@@ -806,3 +806,117 @@ Congélateur-2,Congélateur-2,Etage-1,E2,Cocaine,
 Congélateur-2,Congélateur-2,Etage-1,E3,MDMA,"MDMA,Méthamphétamine"
 Congélateur-2,Congélateur-2,Etage-1,E9,NEthylhexédrone,
 Congélateur-2,Congélateur-2,Etage-1,E8,Caféine,
+Amphétamine,Amphétamine,Frigo_2,D3,AG25045,"amphétamine,caféine"
+Amphétamine,Amphétamine,Frigo_2,D4,PA25156,"Amphétamine,Caféine"
+Kétamine,Kétamine,Frigo_1,H3,KS24402,
+Kétamine,Kétamine,Frigo_1,H4,EN23019,
+Kétamine,Kétamine,Frigo_1,H5,PA25002,"Kétamine,Inconnu"
+Kétamine,Kétamine,Frigo_1,H6,PA23040,
+Kétamine,Kétamine,Frigo_1,H7,ACF25003,
+Kétamine,Kétamine,Frigo_1,H8,AG24045,"Kétamine,Inconnu"
+Kétamine,Kétamine,Frigo_1,H9,EN24018,"Kétamine, Inconnu"
+Kétamine,Kétamine,Frigo_1,H10,PA25183,Kétamine
+Héroïne,Héroïne,Frigo_2,E5,PA24007,
+Héroïne,Héroïne,Frigo_2,E6,CAS24103,
+Héroïne,Héroïne,Frigo_2,E7,CCRL23005,
+Héroïne,Héroïne,Frigo_2,E8,PA25090,
+Héroïne,Héroïne,Frigo_2,E9,PA24007,
+Héroïne,Héroïne,Frigo_2,E10,CLY25001,
+Héroïne,Héroïne,Frigo_2,F1,CCRL25003,
+Héroïne,Héroïne,Frigo_2,F2,Héroïne,
+Héroïne,Héroïne,Frigo_2,F3,PA25152,Héroine classique
+Héroïne,Héroïne,Frigo_2,F4,PA25153,Héroïne classique
+Héroïne,Héroïne,Frigo_2,F5,PA25154,Héroïne classique
+Héroïne,Héroïne,Frigo_2,F6,CAS25001,"Héroïne,inconnu"
+Cannabinoide,Cannabinoide,Frigo_2,G7,PA23050,THC classique
+Cannabinoide,Cannabinoide,Frigo_2,G8,095,THC classique
+Cannabinoide,Cannabinoide,Frigo_2,G9,PA25160,cannabinoide
+Cannabinoide,Cannabinoide,Frigo_2,G10,PA25140,cannabinoide
+Cannabinoide,Cannabinoide,Frigo_2,H1,PA25149,cannabinoide
+Cannabinoide,Cannabinoide,Frigo_2,H2,PA25125,cannabinoide
+Cocaïne,Cocaïne,Frigo_1,E6,AG25046,
+Cocaïne,Cocaïne,Frigo_1,C8,EN25018,
+Cocaïne,Cocaïne,Frigo_1,C9,PA25112,
+Cocaïne,Cocaïne,Frigo_1,C10,CRR25001,
+Cocaïne,Cocaïne,Frigo_1,D1,FEST25102,
+Cocaïne,Cocaïne,Frigo_1,D3,PA25120,
+Cocaïne,Cocaïne,Frigo_1,D4,PA25071,
+Cocaïne,Cocaïne,Frigo_1,D5,PA25128,
+Cocaïne,Cocaïne,Frigo_1,D6,PA25130,
+Cocaïne,Cocaïne,Frigo_1,D7,PA25041,
+Cocaïne,Cocaïne,Frigo_1,D8,EN25021,
+Cocaïne,Cocaïne,Frigo_1,D9,ACF25005,
+Cocaïne,Cocaïne,Frigo_1,D10,EN25014,
+Cocaïne,Cocaïne,Frigo_1,E1,CAP25522,
+Cocaïne,Cocaïne,Frigo_1,E2,EN25015,
+Cocaïne,Cocaïne,Frigo_1,E3,EN25020,
+NPS-02,NPS-02,Frigo_2,J3,CRR25006,GBL
+NPS-02,NPS-02,Frigo_2,J4,CR25007,GBL
+Cocaïne,Cocaïne,Frigo_1,E4,PA25144,"Cocaïne, Caféine, Autre"
+Amphétamine,Amphétamine,Frigo_2,D5,CRR25003,Méthamphétamine
+MDMA-01,MDMA-01,Frigo_1,F5,CRR25008,MDMA
+MDMA-01,MDMA-01,Frigo_1,F6,CRR25009,MDMA
+Kétamine,Kétamine,Frigo_1,I1,AG25044,"2FDCK, rien"
+Kétamine,Kétamine,Frigo_1,I2,AG25043,2FDCK
+Cocaïne,Cocaïne,Frigo_1,E5,RI25007,"Cocaïne, Phénacétine, inconnu"
+Cocaïne,Cocaïne,Frigo_1,E7,ACF25012,Cocaïne
+Cocaïne,Cocaïne,Frigo_1,E8,PA25122,Cocaïne
+Cocaïne,Cocaïne,Frigo_1,E9,RI25006,inconnu
+Cocaïne,Cocaïne,Frigo_1,E10,ACF24005,cocaine
+MDMA-01,MDMA-01,Frigo_1,F7,PA25121,
+MDMA-01,MDMA-01,Frigo_1,F8,ACF25011,
+MDMA-01,MDMA-01,Frigo_1,F9,ACF25013,
+MDMA-01,MDMA-01,Frigo_1,F10,ACF25014,
+NPS-02,NPS-02,Frigo_2,G9,ACF25010,LSD
+NPS-02,NPS-02,Frigo_2,G10,AG25042,1V-LSD
+Cocaïne,Cocaïne,Frigo_1,F1,ACF23026,
+Amphétamine,Amphétamine,Frigo_2,D6,PA25078,"Amphétamine, Caféine"
+Cocaïne,Cocaïne,Frigo_1,F2,PPV24420,"Cocaïne, inconnu"
+MDMA-01,MDMA-01,Frigo_1,G1,PA25113,MDMA
+MDMA-01,MDMA-01,Frigo_1,G2,KS25039,MDMA
+MDMA-01,MDMA-01,Frigo_1,G3,KS25040,MDMA
+NPS-02,NPS-02,Frigo_2,J5,KS25041,GBL
+Cocaïne,Cocaïne,Frigo_1,F3,PA25155,"Cocaine, Caféine"
+Cocaïne,Cocaïne,Frigo_1,F4,PA25158,Cocaine
+Cocaïne,Cocaïne,Frigo_1,F5,PA25159,Cocaïne
+Cocaïne,Cocaïne,Frigo_1,F6,PA25163,Cocaine
+MDMA-01,MDMA-01,Frigo_1,G4,PA25148,MDMA
+Kétamine,Kétamine,Frigo_1,I3,RI25008,Kétamine
+Kétamine,Kétamine,Frigo_1,I4,RI25008,Kétamine
+Kétamine,Kétamine,Frigo_1,I5,AG25048,Kétamine
+Cocaïne,Cocaïne,Frigo_1,F7,ACF24024,"Cocaine, inconnu"
+Cocaïne,Cocaïne,Frigo_1,F8,PPV24011,Cocaïne
+Kétamine,Kétamine,Frigo_1,I6,PA25119,Kétamine
+Kétamine,Kétamine,Frigo_1,I7,PA25117,Kétamine
+Kétamine,Kétamine,Frigo_1,I8,AG25041,Kétamine
+MDMA-01,MDMA-01,Frigo_1,G5,PA25116,MDMA
+Cathinone-2MMC,Cathinone-2MMC,Non définie,,,
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A1,EN25023,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A2,PA25184,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A3,PA25127,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A4,PA25147,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A5,PA25143,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A6,CRR25002,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A7,CRR25005,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A8,PA25123,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A9,PA25157,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,A10,PA25161,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B1,PA25151,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B2,FEST25109,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B3,EST25114,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B4,FEST25123,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B5,FEST25124,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B6,FEST25125,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B7,FEST25130,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B8,FEST25136,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B9,FEST25137,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,B10,PA25115,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,C1,PA25114,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,C2,KS25038,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,C3,PA25118,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,E1,CRR25004,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,E2,KS25036,2-MMC
+Cathinone-2MMC,Cathinone-2MMC,Non définie,J1,PA25141,APIHP
+Cathinone-2MMC,Cathinone-2MMC,Non définie,J2,PA25145,APIHP
+Cathinone-2MMC,Cathinone-2MMC,Non définie,J3,PA25146,APIHP
+Cathinone-2MMC,Cathinone-2MMC,Non définie,J10,PA25150,RIEN
