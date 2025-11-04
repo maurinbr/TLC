@@ -20,79 +20,7 @@
                     <h5 class="mb-0">
                         <i class="fas fa-folder"></i> Sets de Recherche
                     </h5>
-              }, 5000);
-}
-
-function generateStars(rating) {
-    const normalizedRating = Math.max(0, Math.min(1, rating)); // Assurer que c'est entre 0 et 1
-    const stars = [];
-    
-    for (let i = 1; i <= 5; i++) {
-        const threshold = i / 5; // 0.2, 0.4, 0.6, 0.8, 1.0
-        const filled = normalizedRating >= threshold;
-        stars.push(`<i class="fas fa-star rating-star ${filled ? 'filled' : ''}" data-rating="${threshold}" onclick="setRating(event, ${threshold})"></i>`);
-    }
-    
-    return stars.join('');
-}
-
-async function setRating(event, rating) {
-    event.stopPropagation();
-    
-    const starElement = event.target;
-    const starsContainer = starElement.closest('.rating-stars');
-    const pmid = starsContainer.dataset.pmid;
-    const setId = starsContainer.dataset.setId;
-    
-    if (!setId || setId === 'unknown' || !pmid) {
-        console.error('Données manquantes pour la notation:', {setId, pmid});
-        showAlert('Erreur: données article manquantes', 'error');
-        return;
-    }
-    
-    try {
-        console.log('Setting rating:', {setId, pmid, rating});
-        
-        const response = await fetch('/rate-article', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                set_id: setId,
-                pmid: pmid,
-                rating: rating
-            })
-        });
-        
-        console.log('Rating response status:', response.status, response.ok);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        console.log('Rating result:', result);
-        
-        if (result.success) {
-            console.log('Rating réussi, rechargement des données...');
-            
-            // Recharger les données pour avoir les notes à jour
-            await loadPubMedSets();
-            
-            showAlert(
-                `Note attribuée: ${result.rating.toFixed(1)} (${result.updated_count || 1} articles mis à jour)`, 
-                'success'
-            );
-        } else {
-            console.error('Server error:', result.error);
-            showAlert(result.error || 'Erreur lors de la notation', 'error');
-        }
-    } catch (error) {
-        console.error('Erreur complète:', error);
-        showAlert(`Erreur lors de la notation: ${error.message}`, 'error');
-    }
-}        <button class="btn btn-primary btn-sm" onclick="showAddSetModal()">
+                    <button class="btn btn-primary btn-sm" onclick="showAddSetModal()">
                         <i class="fas fa-plus"></i> Ajouter
                     </button>
                 </div>
@@ -375,7 +303,6 @@ async function loadPubMedSets() {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        // Essayer directement de parser comme JSON
         const data = await response.json();
         console.log('Données JSON reçues avec succès');
         
@@ -389,7 +316,7 @@ async function loadPubMedSets() {
         renderFeed();
     } catch (error) {
         console.error('Erreur détaillée lors du chargement des sets:', error);
-        showAlert(`🔍 NOUVEAU DEBUG - Erreur lors du chargement des données: ${error.message}`, 'error');
+        showAlert(`Erreur lors du chargement des données: ${error.message}`, 'error');
     }
 }
 
@@ -470,11 +397,10 @@ function renderFeed() {
         articles = articles.filter(article => {
             const doi = article.DOI;
             if (!doi || doi === '' || doi === null) {
-                // Si pas de DOI, on garde l'article (mais on pourrait avoir des doublons)
                 return true;
             }
             if (seenDOIs.has(doi)) {
-                return false; // Doublon, on l'ignore
+                return false;
             }
             seenDOIs.add(doi);
             return true;
@@ -571,10 +497,79 @@ function highlightText(text, searchTerm) {
     return text.replace(regex, '<span class="search-highlight">$1</span>');
 }
 
+function generateStars(rating) {
+    const normalizedRating = Math.max(0, Math.min(1, rating));
+    const stars = [];
+    
+    for (let i = 1; i <= 5; i++) {
+        const threshold = i / 5;
+        const filled = normalizedRating >= threshold;
+        stars.push(`<i class="fas fa-star rating-star ${filled ? 'filled' : ''}" data-rating="${threshold}" onclick="setRating(event, ${threshold})"></i>`);
+    }
+    
+    return stars.join('');
+}
+
+async function setRating(event, rating) {
+    event.stopPropagation();
+    
+    const starElement = event.target;
+    const starsContainer = starElement.closest('.rating-stars');
+    const pmid = starsContainer.dataset.pmid;
+    const setId = starsContainer.dataset.setId;
+    
+    if (!setId || setId === 'unknown' || !pmid) {
+        console.error('Données manquantes pour la notation:', {setId, pmid});
+        showAlert('Erreur: données article manquantes', 'error');
+        return;
+    }
+    
+    try {
+        console.log('Setting rating:', {setId, pmid, rating});
+        
+        const response = await fetch('/rate-article', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                set_id: setId,
+                pmid: pmid,
+                rating: rating
+            })
+        });
+        
+        console.log('Rating response status:', response.status, response.ok);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Rating result:', result);
+        
+        if (result.success) {
+            console.log('Rating réussi, rechargement des données...');
+            
+            await loadPubMedSets();
+            
+            showAlert(
+                `Note attribuée: ${result.rating.toFixed(1)} (${result.updated_count || 1} articles mis à jour)`, 
+                'success'
+            );
+        } else {
+            console.error('Server error:', result.error);
+            showAlert(result.error || 'Erreur lors de la notation', 'error');
+        }
+    } catch (error) {
+        console.error('Erreur complète:', error);
+        showAlert(`Erreur lors de la notation: ${error.message}`, 'error');
+    }
+}
+
 async function toggleReadStatusFromButton(button, event) {
     event.stopPropagation();
     
-    // Récupérer les données de l'article parent
     const articleElement = button.closest('.article-item');
     const setId = articleElement.dataset.setId;
     const pmid = articleElement.dataset.pmid;
@@ -621,13 +616,11 @@ async function toggleReadStatus(setId, pmid, event) {
         if (result.success) {
             console.log('Toggle réussi, rechargement des données...');
             
-            // Recharger les données pour avoir les statuts à jour
             await loadPubMedSets();
             
             console.log('Données rechargées, re-render du feed...');
             console.log('Nombre d\'articles total:', allArticles.length);
             
-            // Trouver l'article modifié pour vérifier son statut
             const modifiedArticle = allArticles.find(a => a.PMID == pmid);
             console.log('Article modifié:', modifiedArticle ? {
                 PMID: modifiedArticle.PMID,
